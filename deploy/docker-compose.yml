@@ -1,0 +1,56 @@
+name: falak-alkhair-erp
+
+services:
+  sqlserver:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    container_name: falak-sqlserver
+    environment:
+      ACCEPT_EULA: "Y"
+      MSSQL_SA_PASSWORD: ${MSSQL_SA_PASSWORD:?يجب تحديد MSSQL_SA_PASSWORD في ملف .env}
+      MSSQL_PID: Express
+    ports:
+      - "1433:1433"
+    volumes:
+      - sqlserver-data:/var/opt/mssql
+    healthcheck:
+      test: ["CMD-SHELL", "/opt/mssql-tools18/bin/sqlcmd -C -S localhost -U sa -P \"$$MSSQL_SA_PASSWORD\" -Q 'SELECT 1' || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    restart: unless-stopped
+
+  api:
+    build:
+      context: ../src/Backend
+      dockerfile: Dockerfile
+    container_name: falak-api
+    depends_on:
+      sqlserver:
+        condition: service_healthy
+    environment:
+      ASPNETCORE_ENVIRONMENT: ${ASPNETCORE_ENVIRONMENT:-Production}
+      ConnectionStrings__DefaultConnection: "Server=sqlserver,1433;Database=FalakAlkhairERP;User Id=sa;Password=${MSSQL_SA_PASSWORD};TrustServerCertificate=True"
+      Jwt__Secret: ${JWT_SECRET:?يجب تحديد JWT_SECRET في ملف .env (32 محرفًا على الأقل)}
+      Jwt__Issuer: ${JWT_ISSUER:-FalakAlkhairERP}
+      Jwt__Audience: ${JWT_AUDIENCE:-FalakAlkhairERPClients}
+      Seed__AdminPassword: ${SEED_ADMIN_PASSWORD:-}
+      Cors__AllowedOrigins__0: ${WEB_ORIGIN:-http://localhost:3000}
+    ports:
+      - "5000:8080"
+    restart: unless-stopped
+
+  web:
+    build:
+      context: ../src/Frontend
+      dockerfile: Dockerfile
+      args:
+        NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://localhost:5000/api}
+    container_name: falak-web
+    depends_on:
+      - api
+    ports:
+      - "3000:3000"
+    restart: unless-stopped
+
+volumes:
+  sqlserver-data:

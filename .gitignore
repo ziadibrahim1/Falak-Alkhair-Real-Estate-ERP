@@ -1,0 +1,29 @@
+# ==== .NET / Backend ====
+bin/
+obj/
+*.user
+*.suo
+.vs/
+logs/
+*.log
+
+# ==== Node / Frontend ====
+node_modules/
+.next/
+out/
+*.tsbuildinfo
+
+# ==== أسرار وإعدادات محلية — لا تُرفع أبدًا ====
+.env
+.env.local
+.env.*.local
+deploy/.env
+**/appsettings.Local.json
+**/appsettings.Production.json
+secrets.json
+
+# ==== نظام التشغيل / المحررات ====
+.DS_Store
+Thumbs.db
+.idea/
+*.swp

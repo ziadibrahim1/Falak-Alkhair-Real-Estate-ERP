@@ -1,0 +1,105 @@
+{
+  "app": {
+    "name": "فلك الخير العقارية",
+    "tagline": "نظام إدارة الأملاك والوساطة العقارية"
+  },
+  "common": {
+    "search": "بحث",
+    "add": "إضافة",
+    "edit": "تعديل",
+    "delete": "حذف",
+    "save": "حفظ",
+    "cancel": "إلغاء",
+    "actions": "إجراءات",
+    "status": "الحالة",
+    "loading": "جارٍ التحميل...",
+    "noData": "لا توجد بيانات لعرضها",
+    "confirmDeleteTitle": "تأكيد الحذف",
+    "confirmDeleteMessage": "هل أنت متأكد من حذف هذا العنصر؟ لا يمكن التراجع عن هذا الإجراء.",
+    "page": "صفحة",
+    "of": "من",
+    "totalRecords": "إجمالي السجلات",
+    "logout": "تسجيل الخروج",
+    "language": "اللغة",
+    "roadmapNotice": "هذه الوحدة ضمن خارطة الطريق القادمة للنظام ولم تُبنَ بعد في هذه المرحلة التأسيسية."
+  },
+  "auth": {
+    "loginTitle": "تسجيل الدخول",
+    "loginSubtitle": "نظام إدارة شركة فلك الخير العقارية",
+    "username": "اسم المستخدم أو البريد الإلكتروني",
+    "password": "كلمة المرور",
+    "loginButton": "دخول",
+    "loginError": "بيانات الدخول غير صحيحة أو الحساب موقوف.",
+    "usernameRequired": "اسم المستخدم مطلوب",
+    "passwordRequired": "كلمة المرور مطلوبة"
+  },
+  "nav": {
+    "dashboard": "لوحة التحكم",
+    "properties": "العقارات",
+    "units": "الوحدات",
+    "owners": "الملاك",
+    "agreements": "عقود إدارة الأملاك",
+    "tenants": "المستأجرون",
+    "leases": "عقود الإيجار",
+    "sales": "المبيعات",
+    "maintenance": "الصيانة",
+    "marketing": "التسويق",
+    "auctions": "المزادات",
+    "documents": "المستندات",
+    "reports": "التقارير",
+    "finance": "المالية",
+    "users": "المستخدمون",
+    "settings": "الإعدادات"
+  },
+  "dashboard": {
+    "title": "لوحة التحكم",
+    "totalProperties": "إجمالي العقارات",
+    "totalUnits": "إجمالي الوحدات",
+    "rentedUnits": "الوحدات المؤجرة",
+    "availableUnits": "الوحدات الشاغرة",
+    "activeAgreements": "عقود إدارة الأملاك النشطة",
+    "expiringAgreements": "عقود تنتهي قريبًا"
+  },
+  "properties": {
+    "title": "العقارات",
+    "code": "كود العقار",
+    "name": "اسم العقار",
+    "type": "النوع",
+    "category": "التصنيف",
+    "owner": "المالك",
+    "city": "المدينة",
+    "status": "الحالة",
+    "unitsCount": "عدد الوحدات",
+    "addNew": "إضافة عقار جديد"
+  },
+  "units": {
+    "title": "الوحدات",
+    "code": "كود الوحدة",
+    "number": "رقم الوحدة",
+    "property": "العقار",
+    "type": "النوع",
+    "status": "الحالة",
+    "area": "المساحة",
+    "rentalPrice": "سعر الإيجار",
+    "salePrice": "سعر البيع"
+  },
+  "owners": {
+    "title": "الملاك",
+    "code": "كود المالك",
+    "name": "الاسم",
+    "mobile": "الجوال",
+    "type": "النوع",
+    "propertiesCount": "عدد العقارات",
+    "addNew": "إضافة مالك جديد"
+  },
+  "agreements": {
+    "title": "عقود إدارة الأملاك",
+    "contractNumber": "رقم العقد",
+    "owner": "المالك",
+    "property": "العقار",
+    "startDate": "تاريخ البداية",
+    "endDate": "تاريخ النهاية",
+    "status": "الحالة",
+    "approve": "اعتماد"
+  }
+}

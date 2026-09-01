@@ -1,0 +1,38 @@
+@import "tailwindcss";
+
+:root {
+  --background: #f5f6f8;
+  --foreground: #14181f;
+  --brand: #0f6b52;
+  --brand-dark: #0b5240;
+  --surface: #ffffff;
+  --border: #e3e6ea;
+  --danger: #c0362c;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-brand: var(--brand);
+  --color-brand-dark: var(--brand-dark);
+  --color-surface: var(--surface);
+  --color-border: var(--border);
+  --color-danger: var(--danger);
+  /*
+    خط نظام آمن (بلا جلب خارجي وقت البناء) يدعم العربية بوضوح على كل الأنظمة:
+    Tahoma/Segoe UI على ويندوز، SF Arabic ضمن -apple-system على macOS/iOS،
+    Noto/Cairo إن وُجدا مثبّتين، وإلا fallback لأي sans-serif متاح.
+    يمكن استبداله لاحقًا بخط مؤسسي عبر next/font/local دون تغيير أي مكوّن.
+  */
+  --font-sans: -apple-system, "Segoe UI", Tahoma, "Noto Sans Arabic", "Cairo", Arial, sans-serif;
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+}
+
+/* دعم RTL/LTR: بعض المكوّنات (كالأيقونات الاتجاهية) تحتاج قلب صريح في وضع RTL. */
+[dir="rtl"] .flip-rtl {
+  transform: scaleX(-1);
+}

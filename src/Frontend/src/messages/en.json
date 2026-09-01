@@ -1,0 +1,105 @@
+{
+  "app": {
+    "name": "Falak Alkhair Real Estate",
+    "tagline": "Property Management & Real Estate Brokerage System"
+  },
+  "common": {
+    "search": "Search",
+    "add": "Add",
+    "edit": "Edit",
+    "delete": "Delete",
+    "save": "Save",
+    "cancel": "Cancel",
+    "actions": "Actions",
+    "status": "Status",
+    "loading": "Loading...",
+    "noData": "No data to display",
+    "confirmDeleteTitle": "Confirm Delete",
+    "confirmDeleteMessage": "Are you sure you want to delete this item? This action cannot be undone.",
+    "page": "Page",
+    "of": "of",
+    "totalRecords": "Total records",
+    "logout": "Logout",
+    "language": "Language",
+    "roadmapNotice": "This module is on the product roadmap and has not been built yet in this foundational phase."
+  },
+  "auth": {
+    "loginTitle": "Sign In",
+    "loginSubtitle": "Falak Alkhair Real Estate ERP",
+    "username": "Username or Email",
+    "password": "Password",
+    "loginButton": "Sign In",
+    "loginError": "Invalid credentials or the account is disabled.",
+    "usernameRequired": "Username is required",
+    "passwordRequired": "Password is required"
+  },
+  "nav": {
+    "dashboard": "Dashboard",
+    "properties": "Properties",
+    "units": "Units",
+    "owners": "Owners",
+    "agreements": "Management Agreements",
+    "tenants": "Tenants",
+    "leases": "Leases",
+    "sales": "Sales",
+    "maintenance": "Maintenance",
+    "marketing": "Marketing",
+    "auctions": "Auctions",
+    "documents": "Documents",
+    "reports": "Reports",
+    "finance": "Finance",
+    "users": "Users",
+    "settings": "Settings"
+  },
+  "dashboard": {
+    "title": "Dashboard",
+    "totalProperties": "Total Properties",
+    "totalUnits": "Total Units",
+    "rentedUnits": "Rented Units",
+    "availableUnits": "Available Units",
+    "activeAgreements": "Active Management Agreements",
+    "expiringAgreements": "Expiring Soon"
+  },
+  "properties": {
+    "title": "Properties",
+    "code": "Property Code",
+    "name": "Property Name",
+    "type": "Type",
+    "category": "Category",
+    "owner": "Owner",
+    "city": "City",
+    "status": "Status",
+    "unitsCount": "Units",
+    "addNew": "Add New Property"
+  },
+  "units": {
+    "title": "Units",
+    "code": "Unit Code",
+    "number": "Unit Number",
+    "property": "Property",
+    "type": "Type",
+    "status": "Status",
+    "area": "Area",
+    "rentalPrice": "Rental Price",
+    "salePrice": "Sale Price"
+  },
+  "owners": {
+    "title": "Owners",
+    "code": "Owner Code",
+    "name": "Name",
+    "mobile": "Mobile",
+    "type": "Type",
+    "propertiesCount": "Properties",
+    "addNew": "Add New Owner"
+  },
+  "agreements": {
+    "title": "Property Management Agreements",
+    "contractNumber": "Contract Number",
+    "owner": "Owner",
+    "property": "Property",
+    "startDate": "Start Date",
+    "endDate": "End Date",
+    "status": "Status",
+    "approve": "Approve"
+  }
+}
