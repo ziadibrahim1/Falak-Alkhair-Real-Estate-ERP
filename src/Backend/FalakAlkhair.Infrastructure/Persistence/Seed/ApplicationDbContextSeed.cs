@@ -9,25 +9,22 @@ using Microsoft.Extensions.Logging;
 
 namespace FalakAlkhair.Infrastructure.Persistence.Seed;
 
-/// <summary>
-/// بيانات تطويرية أولية (Development Seed): شركة فلك الخير، فرعها الرئيسي،
-/// كتالوج الصلاحيات، الأدوار الأساسية (مع منح SuperAdmin كل الصلاحيات)،
-/// ومستخدم إداري واحد لأغراض التطوير فقط (كلمة المرور تُقرأ من الإعدادات
-/// ولا تُكتب أبدًا داخل الكود المصدري).
-/// </summary>
 public static class ApplicationDbContextSeed
 {
     public static async Task SeedAsync(IServiceProvider services, string adminPassword)
     {
+        Console.WriteLine("SEED-STEP 0: entered SeedAsync");
         var context = services.GetRequiredService<ApplicationDbContext>();
         var roleManager = services.GetRequiredService<RoleManager<ApplicationRole>>();
         var userManager = services.GetRequiredService<UserManager<ApplicationUser>>();
         var logger = services.GetRequiredService<ILoggerFactory>().CreateLogger("Seed");
 
+        Console.WriteLine("SEED-STEP 1: before MigrateAsync");
         await context.Database.MigrateAsync();
+        Console.WriteLine("SEED-STEP 2: after MigrateAsync");
 
-        // 1) الصلاحيات
         var existingCodes = await context.Permissions.Select(p => p.Code).ToListAsync();
+        Console.WriteLine("SEED-STEP 3: after Permissions select, count=" + existingCodes.Count);
         foreach (var (code, module, action, descriptionAr) in Permissions.All)
         {
             if (!existingCodes.Contains(code))
@@ -36,9 +33,10 @@ public static class ApplicationDbContextSeed
             }
         }
         await context.SaveChangesAsync();
+        Console.WriteLine("SEED-STEP 4: after permissions SaveChanges");
 
-        // 2) الشركة والفرع الرئيسي
         var company = await context.Companies.FirstOrDefaultAsync();
+        Console.WriteLine("SEED-STEP 5: after Companies FirstOrDefault, company is null = " + (company is null));
         if (company is null)
         {
             company = new Company
@@ -52,8 +50,10 @@ public static class ApplicationDbContextSeed
             context.Companies.Add(company);
             await context.SaveChangesAsync();
         }
+        Console.WriteLine("SEED-STEP 6: company ready, id=" + company.Id);
 
         var mainBranch = await context.Branches.FirstOrDefaultAsync(b => b.CompanyId == company.Id);
+        Console.WriteLine("SEED-STEP 7: after Branches FirstOrDefault, mainBranch is null = " + (mainBranch is null));
         if (mainBranch is null)
         {
             mainBranch = new Branch
@@ -68,12 +68,13 @@ public static class ApplicationDbContextSeed
             context.Branches.Add(mainBranch);
             await context.SaveChangesAsync();
         }
+        Console.WriteLine("SEED-STEP 8: branch ready, id=" + mainBranch.Id);
 
-        // 3) الأدوار الأساسية
         foreach (var roleName in typeof(SystemRoles)
                      .GetFields().Where(f => f.IsLiteral)
                      .Select(f => (string)f.GetRawConstantValue()!))
         {
+            Console.WriteLine("SEED-STEP 9: checking role " + roleName);
             if (await roleManager.FindByNameAsync(roleName) is not null) continue;
 
             var role = new ApplicationRole
@@ -85,10 +86,12 @@ public static class ApplicationDbContextSeed
             };
 
             await roleManager.CreateAsync(role);
+            Console.WriteLine("SEED-STEP 10: created role " + roleName);
         }
+        Console.WriteLine("SEED-STEP 11: roles loop done");
 
-        // SuperAdmin و SystemAdministrator يحصلان على كل الصلاحيات تلقائيًا.
         var allPermissions = await context.Permissions.ToListAsync();
+        Console.WriteLine("SEED-STEP 12: allPermissions count=" + allPermissions.Count);
         foreach (var roleName in new[] { SystemRoles.SuperAdmin, SystemRoles.SystemAdministrator })
         {
             var role = await roleManager.FindByNameAsync(roleName);
@@ -101,8 +104,8 @@ public static class ApplicationDbContextSeed
             }
         }
         await context.SaveChangesAsync();
+        Console.WriteLine("SEED-STEP 13: role permissions saved");
 
-        // Viewer يحصل فقط على صلاحيات العرض (View) كمثال لدور محدود الصلاحية.
         var viewerRole = await roleManager.FindByNameAsync(SystemRoles.Viewer);
         if (viewerRole is not null)
         {
@@ -113,8 +116,8 @@ public static class ApplicationDbContextSeed
             }
             await context.SaveChangesAsync();
         }
+        Console.WriteLine("SEED-STEP 14: viewer role permissions saved");
 
-        // 4) مستخدم إداري للتطوير فقط — لا يُنشأ إن كانت كلمة المرور فارغة (بيئة إنتاج بلا Seed حساسة).
         if (string.IsNullOrWhiteSpace(adminPassword))
         {
             logger.LogWarning("تخطي إنشاء مستخدم Admin الافتراضي: لم تُحدَّد كلمة مرور في الإعدادات (Seed:AdminPassword).");
@@ -122,6 +125,7 @@ public static class ApplicationDbContextSeed
         }
 
         const string adminUserName = "admin";
+        Console.WriteLine("SEED-STEP 15: before FindByNameAsync admin");
         if (await userManager.FindByNameAsync(adminUserName) is null)
         {
             var adminUser = new ApplicationUser
@@ -146,8 +150,8 @@ public static class ApplicationDbContextSeed
                 logger.LogError("فشل إنشاء مستخدم Admin الافتراضي: {Errors}", string.Join(" ", result.Errors.Select(e => e.Description)));
             }
         }
+        Console.WriteLine("SEED-STEP 16: admin user step done");
 
-        // 5) بيانات تجريبية بسيطة (Sample Owner/Property/Unit) لتسهيل الاختبار اليدوي.
         if (!await context.Owners.AnyAsync(o => o.CompanyId == company.Id))
         {
             var sampleOwner = new Owner
@@ -200,5 +204,6 @@ public static class ApplicationDbContextSeed
             });
             await context.SaveChangesAsync();
         }
+        Console.WriteLine("SEED-STEP 17: sample data step done, SeedAsync fully complete");
     }
 }
