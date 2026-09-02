@@ -78,7 +78,7 @@ public class NumberGeneratorService : INumberGeneratorService
                   VALUES (NEWID(), {0}, {2}, 0, 6, {1})",
                 entityKey, companyId, prefix, cancellationToken);
         }
-        catch (SqlException) when (true)
+        catch (SqlException)
         {
             // في حال حدوث تعارض تزامن نادر أثناء الإنشاء المبدئي، الصف أصبح موجودًا بالفعل
             // بفضل الفهرس الفريد (CompanyId, EntityKey) — نتجاهل الخطأ ونكمل بالمحاولة التالية.

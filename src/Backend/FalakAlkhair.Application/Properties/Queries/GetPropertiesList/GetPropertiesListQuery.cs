@@ -7,7 +7,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace FalakAlkhair.Application.Properties.Queries.GetPropertiesList;
 
-public record GetPropertiesListQuery : ListQueryParams, IRequest<PaginatedList<PropertyDto>>
+public class GetPropertiesListQuery : ListQueryParams, IRequest<PaginatedList<PropertyDto>>
 {
     public PropertyType? PropertyType { get; init; }
     public PropertyStatus? Status { get; init; }

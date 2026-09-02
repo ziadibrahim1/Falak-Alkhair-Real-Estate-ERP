@@ -28,7 +28,7 @@ public class CreateOwnerCommandHandlerTests
         var owner = await context.Owners.FindAsync(ownerId);
         owner.Should().NotBeNull();
         owner!.OwnerCode.Should().Be("OWNER-000001");
-        owner.CompanyId.Should().Be(currentUser.CompanyId);
+        owner.CompanyId.Should().Be(currentUser.CompanyId!.Value);
         owner.IsActive.Should().BeTrue();
     }
 }

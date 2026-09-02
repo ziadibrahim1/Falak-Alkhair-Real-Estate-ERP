@@ -7,7 +7,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace FalakAlkhair.Application.Units.Queries.GetUnitsList;
 
-public record GetUnitsListQuery : ListQueryParams, IRequest<PaginatedList<UnitDto>>
+public class GetUnitsListQuery : ListQueryParams, IRequest<PaginatedList<UnitDto>>
 {
     public Guid? PropertyId { get; init; }
     public UnitStatus? Status { get; init; }

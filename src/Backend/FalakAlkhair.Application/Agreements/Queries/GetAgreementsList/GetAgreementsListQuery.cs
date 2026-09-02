@@ -7,7 +7,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace FalakAlkhair.Application.Agreements.Queries.GetAgreementsList;
 
-public record GetAgreementsListQuery : ListQueryParams, IRequest<PaginatedList<AgreementDto>>
+public class GetAgreementsListQuery : ListQueryParams, IRequest<PaginatedList<AgreementDto>>
 {
     public ManagementAgreementStatus? Status { get; init; }
     /// <summary>عقود تنتهي خلال هذا العدد من الأيام (لتنبيهات الانتهاء القريب).</summary>
@@ -63,7 +63,7 @@ public class GetAgreementsListQueryHandler : IRequestHandler<GetAgreementsListQu
             CommissionType = a.CommissionType,
             CommissionPercentage = a.CommissionPercentage,
             Status = a.Status,
-            DaysRemaining = EF.Functions.DateDiffDay(DateTime.UtcNow, a.EndDate),
+            DaysRemaining = (a.EndDate - DateTime.UtcNow).Days,
             CreatedAt = a.CreatedAt
         });
 

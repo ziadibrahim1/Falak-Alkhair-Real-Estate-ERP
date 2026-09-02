@@ -40,7 +40,7 @@ public class UnitsController : BaseApiController
     {
         if (id != command.Id) return BadRequest(ApiResponse<object>.Fail("معرّف الطلب لا يطابق معرّف المسار."));
         await Mediator.Send(command, cancellationToken);
-        return Ok(ApiResponse<object>.Ok<object?>(null, "تم تحديث بيانات الوحدة بنجاح."));
+        return Ok(ApiResponse<object?>.Ok(null, "تم تحديث بيانات الوحدة بنجاح."));
     }
 
     [HttpDelete("{id:guid}")]
@@ -48,6 +48,6 @@ public class UnitsController : BaseApiController
     public async Task<IActionResult> Delete(Guid id, CancellationToken cancellationToken)
     {
         await Mediator.Send(new DeleteUnitCommand(id), cancellationToken);
-        return Ok(ApiResponse<object>.Ok<object?>(null, "تم حذف الوحدة بنجاح."));
+        return Ok(ApiResponse<object?>.Ok(null, "تم حذف الوحدة بنجاح."));
     }
 }

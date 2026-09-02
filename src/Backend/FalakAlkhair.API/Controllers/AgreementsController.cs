@@ -41,7 +41,7 @@ public class AgreementsController : BaseApiController
     {
         if (id != command.Id) return BadRequest(ApiResponse<object>.Fail("معرّف الطلب لا يطابق معرّف المسار."));
         await Mediator.Send(command, cancellationToken);
-        return Ok(ApiResponse<object>.Ok<object?>(null, "تم تحديث العقد بنجاح."));
+        return Ok(ApiResponse<object?>.Ok(null, "تم تحديث العقد بنجاح."));
     }
 
     /// <summary>اعتماد العقد: Draft/PendingApproval → Active.</summary>
@@ -50,6 +50,6 @@ public class AgreementsController : BaseApiController
     public async Task<IActionResult> Approve(Guid id, CancellationToken cancellationToken)
     {
         await Mediator.Send(new ApproveAgreementCommand(id), cancellationToken);
-        return Ok(ApiResponse<object>.Ok<object?>(null, "تم اعتماد العقد وأصبح نشطًا."));
+        return Ok(ApiResponse<object?>.Ok(null, "تم اعتماد العقد وأصبح نشطًا."));
     }
 }

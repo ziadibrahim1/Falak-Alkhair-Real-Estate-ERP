@@ -1,7 +1,7 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Authorization.Infrastructure;
 using Microsoft.Extensions.Options;
-
+using FalakAlkhair.Application.Common.Constants;
 namespace FalakAlkhair.Infrastructure.Identity.Authorization;
 
 /// <summary>متطلب صلاحية واحدة، مثال: "Property.View".</summary>
@@ -16,7 +16,7 @@ public class PermissionAuthorizationHandler : AuthorizationHandler<PermissionReq
 {
     protected override Task HandleRequirementAsync(AuthorizationHandlerContext context, PermissionRequirement requirement)
     {
-        if (context.User.IsInRole(Common.Constants.SystemRoles.SuperAdmin) ||
+        if (context.User.IsInRole(SystemRoles.SuperAdmin) ||
             context.User.HasClaim("permission", requirement.Permission))
         {
             context.Succeed(requirement);

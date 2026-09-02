@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace FalakAlkhair.Application.Owners.Queries.GetOwnersList;
 
-public record GetOwnersListQuery : ListQueryParams, IRequest<PaginatedList<OwnerDto>>
+   public class GetOwnersListQuery : ListQueryParams, IRequest<PaginatedList<OwnerDto>>
 {
     public bool? IsActive { get; init; }
 }

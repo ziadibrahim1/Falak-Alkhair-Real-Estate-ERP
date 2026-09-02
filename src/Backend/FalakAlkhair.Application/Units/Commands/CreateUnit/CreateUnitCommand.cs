@@ -71,7 +71,7 @@ public class CreateUnitCommandHandler : IRequestHandler<CreateUnitCommand, Guid>
 
         var code = await _numberGenerator.GenerateNextNumberAsync("UNIT", companyId, cancellationToken);
 
-        var unit = new Unit
+        var unit = new FalakAlkhair.Domain.Entities.Unit
         {
             CompanyId = companyId,
             BranchId = _currentUser.BranchId,
