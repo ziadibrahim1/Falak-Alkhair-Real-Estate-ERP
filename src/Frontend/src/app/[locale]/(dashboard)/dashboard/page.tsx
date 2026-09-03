@@ -2,9 +2,8 @@
 
 import { useEffect, useState } from "react";
 import { useTranslations } from "next-intl";
-import { getProperties } from "@/lib/api/properties";
-import { getUnits } from "@/lib/api/units";
-import { getAgreements } from "@/lib/api/agreements";
+import { getDashboardStats } from "@/lib/api/dashboard";
+import type { DashboardStatsDto } from "@/lib/types";
 
 interface StatCardProps {
   label: string;
@@ -20,19 +19,19 @@ function StatCard({ label, value }: StatCardProps) {
   );
 }
 
-/**
- * لوحة تحكم مختصرة تعرض مؤشرات أساسية من واجهات القوائم نفسها (بدل نقطة
- * API منفصلة للإحصائيات، غير مبنية بعد ضمن هذه المرحلة التأسيسية).
- */
+function StatSection({ title, children }: { title: string; children: React.ReactNode }) {
+  return (
+    <section className="mb-8">
+      <h2 className="mb-3 text-lg font-semibold text-gray-700">{title}</h2>
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">{children}</div>
+    </section>
+  );
+}
+
+/** لوحة تحكم تعرض إحصائيات حقيقية مجمَّعة على الخادم بأمر واحد (GET /api/dashboard/stats). */
 export default function DashboardPage() {
   const t = useTranslations("dashboard");
-  const [stats, setStats] = useState({
-    totalProperties: 0,
-    totalUnits: 0,
-    availableUnits: 0,
-    activeAgreements: 0,
-    expiringAgreements: 0,
-  });
+  const [stats, setStats] = useState<DashboardStatsDto | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -40,24 +39,8 @@ export default function DashboardPage() {
 
     async function load() {
       try {
-        const [properties, units, agreements, expiring] = await Promise.all([
-          getProperties({ pageNumber: 1, pageSize: 1 }),
-          getUnits({ pageNumber: 1, pageSize: 1 }),
-          getAgreements({ pageNumber: 1, pageSize: 1 }),
-          getAgreements({ pageNumber: 1, pageSize: 1 }),
-        ]);
-
-        if (!cancelled) {
-          setStats({
-            totalProperties: properties.totalCount,
-            totalUnits: units.totalCount,
-            availableUnits: units.totalCount,
-            activeAgreements: agreements.totalCount,
-            expiringAgreements: expiring.totalCount,
-          });
-        }
-      } catch {
-        // يُعرض بصمت هنا؛ الخطأ الفعلي يُسجَّل عبر معالج الأخطاء العام على مستوى axios لاحقًا.
+        const data = await getDashboardStats();
+        if (!cancelled) setStats(data);
       } finally {
         if (!cancelled) setLoading(false);
       }
@@ -69,16 +52,45 @@ export default function DashboardPage() {
     };
   }, []);
 
+  const v = (value: number | undefined) => (loading || value === undefined ? "…" : value.toLocaleString());
+  const money = (value: number | undefined) => (loading || value === undefined ? "…" : `${value.toLocaleString()} ر.س`);
+
   return (
     <div>
       <h1 className="mb-6 text-2xl font-bold">{t("title")}</h1>
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-        <StatCard label={t("totalProperties")} value={loading ? "…" : stats.totalProperties} />
-        <StatCard label={t("totalUnits")} value={loading ? "…" : stats.totalUnits} />
-        <StatCard label={t("availableUnits")} value={loading ? "…" : stats.availableUnits} />
-        <StatCard label={t("activeAgreements")} value={loading ? "…" : stats.activeAgreements} />
-        <StatCard label={t("expiringAgreements")} value={loading ? "…" : stats.expiringAgreements} />
-      </div>
+
+      <StatSection title={t("sectionProperties")}>
+        <StatCard label={t("totalProperties")} value={v(stats?.totalProperties)} />
+        <StatCard label={t("totalUnits")} value={v(stats?.totalUnits)} />
+        <StatCard label={t("availableUnits")} value={v(stats?.availableUnits)} />
+        <StatCard label={t("rentedUnits")} value={v(stats?.rentedUnits)} />
+      </StatSection>
+
+      <StatSection title={t("sectionLeasing")}>
+        <StatCard label={t("activeLeases")} value={v(stats?.activeLeases)} />
+        <StatCard label={t("activeLeasesAnnualRentValue")} value={money(stats?.activeLeasesAnnualRentValue)} />
+        <StatCard label={t("overduePaymentsCount")} value={v(stats?.overduePaymentsCount)} />
+        <StatCard label={t("overduePaymentsAmount")} value={money(stats?.overduePaymentsAmount)} />
+      </StatSection>
+
+      <StatSection title={t("sectionSales")}>
+        <StatCard label={t("salesPipelineCount")} value={v(stats?.salesPipelineCount)} />
+        <StatCard label={t("salesPipelineValue")} value={money(stats?.salesPipelineValue)} />
+        <StatCard label={t("salesCompletedThisMonth")} value={v(stats?.salesCompletedThisMonth)} />
+        <StatCard label={t("pendingCommissionsAmount")} value={money(stats?.pendingCommissionsAmount)} />
+      </StatSection>
+
+      <StatSection title={t("sectionOperations")}>
+        <StatCard label={t("openMaintenanceRequests")} value={v(stats?.openMaintenanceRequests)} />
+        <StatCard label={t("urgentMaintenanceRequests")} value={v(stats?.urgentMaintenanceRequests)} />
+        <StatCard label={t("upcomingAuctions")} value={v(stats?.upcomingAuctions)} />
+        <StatCard label={t("liveAuctions")} value={v(stats?.liveAuctions)} />
+      </StatSection>
+
+      <StatSection title={t("sectionCrm")}>
+        <StatCard label={t("totalLeads")} value={v(stats?.totalLeads)} />
+        <StatCard label={t("newLeadsThisMonth")} value={v(stats?.newLeadsThisMonth)} />
+      </StatSection>
     </div>
   );
 }

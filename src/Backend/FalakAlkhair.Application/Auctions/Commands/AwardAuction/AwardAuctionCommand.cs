@@ -34,12 +34,15 @@ public class AwardAuctionCommandHandler : IRequestHandler<AwardAuctionCommand>
     private readonly IApplicationDbContext _context;
     private readonly ICurrentUserService _currentUser;
     private readonly INumberGeneratorService _numberGenerator;
+    private readonly INotificationService _notifications;
 
-    public AwardAuctionCommandHandler(IApplicationDbContext context, ICurrentUserService currentUser, INumberGeneratorService numberGenerator)
+    public AwardAuctionCommandHandler(
+        IApplicationDbContext context, ICurrentUserService currentUser, INumberGeneratorService numberGenerator, INotificationService notifications)
     {
         _context = context;
         _currentUser = currentUser;
         _numberGenerator = numberGenerator;
+        _notifications = notifications;
     }
 
     public async Task Handle(AwardAuctionCommand request, CancellationToken cancellationToken)
@@ -76,6 +79,15 @@ public class AwardAuctionCommandHandler : IRequestHandler<AwardAuctionCommand>
             OccurredAt = DateTime.UtcNow,
             Notes = $"أُرسي المزاد بسعر نهائي {request.FinalPrice:N2}."
         });
+
+        _notifications.Notify(
+            auction.CompanyId,
+            auction.BranchId,
+            userId: null,
+            Domain.Common.Enums.NotificationType.AuctionAwarded,
+            "تم إرساء مزاد",
+            $"أُرسي المزاد \"{auction.AuctionNumber}\" بسعر نهائي {request.FinalPrice:N2}.",
+            link: "/auctions");
 
         if (auction.AgentId.HasValue && auction.CommissionPercentage > 0)
         {

@@ -105,3 +105,16 @@ public class DocumentConfiguration : IEntityTypeConfiguration<Document>
         builder.HasIndex(x => x.ExpiryDate);
     }
 }
+
+public class NotificationConfiguration : IEntityTypeConfiguration<Notification>
+{
+    public void Configure(EntityTypeBuilder<Notification> builder)
+    {
+        builder.HasKey(x => x.Id);
+        builder.Property(x => x.Title).HasMaxLength(200).IsRequired();
+        builder.Property(x => x.Message).HasMaxLength(1000).IsRequired();
+        builder.Property(x => x.Link).HasMaxLength(300);
+        builder.HasIndex(x => new { x.CompanyId, x.UserId, x.IsRead });
+        builder.HasIndex(x => x.CreatedAt);
+    }
+}

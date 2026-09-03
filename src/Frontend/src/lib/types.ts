@@ -401,3 +401,51 @@ export interface AuctionAuditLogDto {
   occurredAt: string;
   createdBy?: string;
 }
+
+export interface DashboardStatsDto {
+  totalProperties: number;
+  totalUnits: number;
+  availableUnits: number;
+  rentedUnits: number;
+  soldUnits: number;
+  listedUnits: number;
+  activeLeases: number;
+  activeLeasesAnnualRentValue: number;
+  overduePaymentsCount: number;
+  overduePaymentsAmount: number;
+  openMaintenanceRequests: number;
+  urgentMaintenanceRequests: number;
+  upcomingAuctions: number;
+  liveAuctions: number;
+  salesPipelineCount: number;
+  salesPipelineValue: number;
+  salesCompletedThisMonth: number;
+  salesCompletedThisMonthValue: number;
+  pendingCommissionsAmount: number;
+  totalLeads: number;
+  newLeadsThisMonth: number;
+}
+
+export interface NotificationDto {
+  id: string;
+  type: number;
+  title: string;
+  message: string;
+  link?: string;
+  isRead: boolean;
+  createdAt: string;
+}
+
+export interface DocumentDto {
+  id: string;
+  documentType: string;
+  entityType: string;
+  entityId: string;
+  fileName: string;
+  fileSize: number;
+  mimeType: string;
+  notes?: string;
+  expiryDate?: string;
+  createdAt: string;
+  createdBy?: string;
+}

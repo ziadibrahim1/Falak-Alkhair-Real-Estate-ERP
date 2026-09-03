@@ -1,6 +1,8 @@
-# مخطط قاعدة البيانات — حتى نهاية Phase 7
+# مخطط قاعدة البيانات — حتى نهاية Phase 8
 
-قاعدة البيانات: **SQL Server**. هذا المستند يغطي الجداول المبنية فعليًا حتى Phase 7 (Properties/Units/Owners، Tenants/Leases/Payments، Agents/Buyers/Sellers/Leads/Commissions، Listings/MarketingCampaigns/Viewings/Offers/Sales، MaintenanceRequests/MaintenanceEmployees/Vendors/MaintenanceQuotations، Auctions/AuctionAuditLogs). جداول المراحل القادمة (Notifications، Reports المخصَّصة ...) موثّقة في [ROADMAP.md](./ROADMAP.md) وليست جزءًا من هذا الـ Schema بعد.
+قاعدة البيانات: **SQL Server**. هذا المستند يغطي الجداول المبنية فعليًا حتى Phase 8 (Properties/Units/Owners، Tenants/Leases/Payments، Agents/Buyers/Sellers/Leads/Commissions، Listings/MarketingCampaigns/Viewings/Offers/Sales، MaintenanceRequests/MaintenanceEmployees/Vendors/MaintenanceQuotations، Auctions/AuctionAuditLogs، Notifications، Documents). جداول المراحل القادمة (لا جداول جديدة معروفة حاليًا لـ Phase 9 — تركيزها اختبارات/أمان/نشر) موثّقة في [ROADMAP.md](./ROADMAP.md).
+
+جداول Phase 8 الإضافية: `Notification` (UserId?, Type, Title, Message, Link?, IsRead, ReadAt? — UserId فارغ يعني إشعارًا عامًا لكل مستخدمي الشركة). جدول `Document` كان موجودًا منذ Phase 1 (Migration `InitialCreate`) لكن بلا وظيفة رفع/تنزيل فعلية حتى هذه المرحلة — لم يتغيَّر الـ Schema، فقط أُضيفت طبقة `IFileStorageService` في Infrastructure لتخزين الملفات فعليًا على القرص (خارج `wwwroot`) والربط بـ `Document.FilePath`. كلا الكيانين يرث `BaseAuditableEntity`.
 
 جداول Phase 7 الإضافية: `Auction` (PropertyId, UnitId?, OwnerId, SellerId?, AgentId?, StartDate, EndDate, StartingPrice, ReservePrice?, DepositAmount?, CommissionPercentage, Status, WinnerBuyerId?, FinalPrice?, ExternalAuctionId?, CurrentBidAmount?, BidsCount)، `AuctionAuditLog` (AuctionId, EventType, Payload?, SourceIp?, OccurredAt — سجل Append-Only بلا أمر تعديل/حذف مقابل). `Commission` اكتسبت عمود `AuctionId` (nullable) إضافةً إلى `LeaseId`/`SaleId` الموجودين — عمولة المزاد تُولَّد تلقائيًا عند الإرساء (`AwardAuctionCommand`) بنفس آلية تفعيل الإيجار/إتمام البيع. كل هذه الكيانات ترث `BaseAuditableEntity`.
 
@@ -54,6 +56,8 @@ erDiagram
     Company ||--o{ Agent : "نطاق"
     Company ||--o{ NumberSequence : "نطاق"
     Company ||--o{ AuditLog : "نطاق"
+    Company ||--o{ Notification : "نطاق"
+    Company ||--o{ Document : "نطاق"
 
     Company {
         guid Id PK
@@ -332,13 +336,40 @@ erDiagram
         datetime OccurredAt
         guid CompanyId FK
     }
+
+    Notification {
+        guid Id PK
+        guid UserId FK "nullable — فارغ يعني إشعار عام للشركة"
+        string Type
+        string Title
+        string Message
+        string Link "nullable"
+        bool IsRead
+        datetime ReadAt "nullable"
+        guid CompanyId FK
+    }
+
+    Document {
+        guid Id PK
+        string DocumentType
+        string EntityType "مثال: Property, Owner, Lease"
+        guid EntityId
+        string FileName
+        string FilePath "مسار نسبي على القرص، خارج wwwroot"
+        long FileSize
+        string MimeType
+        datetime ExpiryDate "nullable"
+        guid CompanyId FK
+    }
 ```
 
 ## ملاحظات تصميمية مهمة
 
-- **Soft Delete**: كل الكيانات التي ترث `BaseAuditableEntity` (`Owner`, `Property`, `Unit`, `PropertyManagementAgreement`, `Document`, `Tenant`, `Lease`, `LeasePayment`, `Payment`, `Agent`, `Buyer`, `Seller`, `Lead`, `Commission`, `Listing`, `MarketingCampaign`, `Viewing`, `Offer`, `Sale`, `MaintenanceEmployee`, `Vendor`, `MaintenanceRequest`, `MaintenanceQuotation`, `Auction`, `AuctionAuditLog`) تحمل `IsDeleted` + `DeletedAt` + `DeletedBy`، مع Global Query Filter في EF Core يستبعدها تلقائيًا من كل الاستعلامات. لا يوجد حذف فعلي (`DELETE`) لأي سجل عمل.
+- **Soft Delete**: كل الكيانات التي ترث `BaseAuditableEntity` (`Owner`, `Property`, `Unit`, `PropertyManagementAgreement`, `Document`, `Tenant`, `Lease`, `LeasePayment`, `Payment`, `Agent`, `Buyer`, `Seller`, `Lead`, `Commission`, `Listing`, `MarketingCampaign`, `Viewing`, `Offer`, `Sale`, `MaintenanceEmployee`, `Vendor`, `MaintenanceRequest`, `MaintenanceQuotation`, `Auction`, `AuctionAuditLog`, `Notification`) تحمل `IsDeleted` + `DeletedAt` + `DeletedBy`، مع Global Query Filter في EF Core يستبعدها تلقائيًا من كل الاستعلامات. لا يوجد حذف فعلي (`DELETE`) لأي سجل عمل.
 - **عمولات المسوّقين تلقائية**: `Commission` لا تُنشأ يدويًا في المسار الطبيعي — تُولَّد تلقائيًا عند تفعيل `Lease` له `AgentId` ونسبة عمولة > صفر (راجع `ActivateLeaseCommand`)، أو عند إتمام `Sale` (`UpdateSaleStageCommand` → `Completed`)، أو عند إرساء `Auction` (`AwardAuctionCommand` → `Awarded`) — راجع ROADMAP.md لتفاصيل كل مرحلة. `POST /api/commissions` مخصص فقط لحالات استثنائية يدوية.
 - **AuctionAuditLog سجل Append-Only حقيقي**: لا يوجد أمر تعديل أو حذف له في طبقة Application عمدًا (خلافًا لبقية الكيانات القابلة للحذف الناعم) — تحقيقًا لمتطلب عدم السماح بتعديل سجلات المزايدة بعد تسجيلها. يُسجَّل صف جديد فيه عند كل تغيّر حالة للمزاد وعند كل حدث Webhook وارد من منصة المزادات الخارجية.
+- **Document.FilePath ليس رابطًا عامًا**: مسار نسبي داخل مجلد تخزين خارج `wwwroot` (`IFileStorageService`) — لا يُفسَّر أو يُقدَّم كملف ثابت مباشرة؛ الوصول الوحيد له عبر `GET /api/documents/{id}/download` بعد التحقق من الصلاحية ونطاق الشركة.
+- **Notification.UserId اختياري بمعنيين**: قيمة محدَّدة تعني إشعارًا خاصًا بمستخدم بعينه، وقيمة فارغة (`NULL`) تعني إشعارًا عامًا على مستوى الشركة يظهر لكل مستخدميها — الفهرس المركّب `(CompanyId, UserId, IsRead)` مصمَّم لدعم كلا الاستعلامين بكفاءة.
 - **مزامنة عدّادات الترقيم مع بيانات البذر (Seed)**: أي كيان يُزرَع ببيانات تطويرية بكود ثابت (`Owner.OwnerCode = "OWNER-000001"` مثلًا) يجب أن يُسجَّل أيضًا في `EnsureNumberSequenceSeededAsync` بنهاية `ApplicationDbContextSeed.SeedAsync`، وإلا فسيصطدم أول طلب فعلي عبر الـ API لنفس النوع بقيد التفرّد (Unique Index) — هذا خطأ تم اكتشافه وإصلاحه فعليًا أثناء بناء Phase 4 (راجع ROADMAP.md).
 - **الفهرسة (Indexes)**: فهارس فريدة مركّبة على `(CompanyId, Code)` لكل الجداول ذات الترقيم المرجعي، وفهارس على الحقول المستخدمة في البحث/الفلترة (الحالة، المدينة، رقم الجوال، رقم الصك، التواريخ) تحقيقًا لمتطلب الأداء تحت آلاف السجلات.
 - **الدقة المالية**: كل الحقول المالية (`decimal`) بدقة `(18,2)` لتفادي أخطاء التقريب.
@@ -349,14 +380,15 @@ erDiagram
 
 على عكس الإصدارات التأسيسية الأولى (Phase 1/2 حيث لم يتوفر وصول لـ NuGet)، migrations هذا الإصدار **مُولَّدة فعليًا وموجودة في المستودع** (`src/Backend/FalakAlkhair.Infrastructure/Persistence/Migrations/`):
 
-1. `InitialCreate` — Phase 1/2 (Companies, Branches, Identity, Permissions, Owners, Properties, Units, PropertyManagementAgreement).
+1. `InitialCreate` — Phase 1/2 (Companies, Branches, Identity, Permissions, Owners, Properties, Units, PropertyManagementAgreement, Documents — الجدول الأخير بلا وظيفة فعلية حتى Phase 8).
 2. `AddTenantsLeasesPayments` — Phase 3 (Tenants, Leases, LeasePayments, Payments).
 3. `AddAgentsBuyersSellersLeadsCommissions` — Phase 4 (Agents, Buyers, Sellers, Leads, Commissions, وإضافة `Lease.AgentId`).
 4. `AddListingsMarketingViewingsOffersSales` — Phase 5 (Listings, MarketingCampaigns, Viewings, Offers, Sales، وإضافة `Lead.CampaignId`/`Commission.SaleId`).
 5. `AddMaintenanceModule` — Phase 6 (MaintenanceEmployees, Vendors, MaintenanceRequests, MaintenanceQuotations, MaintenanceQuotationItems).
 6. `AddAuctionsModule` — Phase 7 (Auctions, AuctionAuditLogs، وإضافة `Commission.AuctionId`).
+7. `AddNotificationsModule` — Phase 8 (Notifications).
 
-كل migration من الستّة أعلاه **طُبِّق فعليًا** على SQL Server 2022 حقيقي (Docker) وتم التحقق من عمل النظام الكامل (Seed، تسجيل الدخول، CRUD عبر كل Endpoint) قبل رفعه — وليس كودًا مكتوبًا يدويًا بلا اختبار.
+كل migration من السبعة أعلاه **طُبِّق فعليًا** على SQL Server 2022 حقيقي (Docker) وتم التحقق من عمل النظام الكامل (Seed، تسجيل الدخول، CRUD عبر كل Endpoint) قبل رفعه — وليس كودًا مكتوبًا يدويًا بلا اختبار.
 
 عند إضافة كيانات جديدة مستقبلًا، نفّذ من `src/Backend` بعد `dotnet restore`:
 

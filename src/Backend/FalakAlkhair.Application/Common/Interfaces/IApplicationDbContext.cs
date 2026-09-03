@@ -50,5 +50,7 @@ public interface IApplicationDbContext
     DbSet<Auction> Auctions { get; }
     DbSet<AuctionAuditLog> AuctionAuditLogs { get; }
 
+    DbSet<Notification> Notifications { get; }
+
     Task<int> SaveChangesAsync(CancellationToken cancellationToken);
 }

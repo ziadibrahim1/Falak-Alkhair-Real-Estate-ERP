@@ -747,7 +747,39 @@ public static class ApplicationDbContextSeed
             await context.SaveChangesAsync();
         }
 
-        // 13) مزامنة عدّادات الترقيم المرجعي (NumberSequences) مع الأكواد المزروعة يدويًا
+        // 13) إشعارات تجريبية لموديول Phase 8 (Notifications) — إشعار عام على مستوى الشركة
+        // وآخر مقروء مسبقًا، لتغطية شارة "غير مقروء" وقائمة الإشعارات فور أول تشغيل.
+        if (!await context.Notifications.AnyAsync(n => n.CompanyId == company.Id))
+        {
+            context.Notifications.Add(new Notification
+            {
+                CompanyId = company.Id,
+                BranchId = mainBranch.Id,
+                UserId = null,
+                Type = NotificationType.System,
+                Title = "مرحبًا بك في نظام فلك الخير العقارية",
+                Message = "تم إعداد بيانات تجريبية لجميع الموديولات لتسهيل الاستكشاف الأولي للنظام.",
+                Link = "/dashboard",
+                IsRead = false
+            });
+
+            context.Notifications.Add(new Notification
+            {
+                CompanyId = company.Id,
+                BranchId = mainBranch.Id,
+                UserId = null,
+                Type = NotificationType.MaintenanceRequestUrgent,
+                Title = "طلب صيانة عاجل",
+                Message = "طلب صيانة بأولوية High على الوحدة \"101\": تسريب مياه من وحدة التكييف الداخلية في غرفة المعيشة.",
+                Link = "/maintenance",
+                IsRead = true,
+                ReadAt = DateTime.UtcNow.AddDays(-1)
+            });
+
+            await context.SaveChangesAsync();
+        }
+
+        // 14) مزامنة عدّادات الترقيم المرجعي (NumberSequences) مع الأكواد المزروعة يدويًا
         // أعلاه (مثال: "LEAD-000001"). بيانات البذر تُدرَج مباشرة بأكواد ثابتة دون المرور
         // بـ NumberGeneratorService، فإن لم تُزامَن العدّادات هنا، أول طلب فعلي عبر الـ API
         // لنفس النوع يولّد نفس الكود المستخدم مسبقًا فيصطدم بقيد التفرّد (Unique Index).

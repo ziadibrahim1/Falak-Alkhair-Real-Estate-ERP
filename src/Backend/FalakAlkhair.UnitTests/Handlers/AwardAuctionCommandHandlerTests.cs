@@ -38,7 +38,7 @@ public class AwardAuctionCommandHandlerTests
         context.Auctions.Add(auction);
         await context.SaveChangesAsync(CancellationToken.None);
 
-        var handler = new AwardAuctionCommandHandler(context, currentUser, new FakeNumberGeneratorService());
+        var handler = new AwardAuctionCommandHandler(context, currentUser, new FakeNumberGeneratorService(), new FakeNotificationService(context));
 
         var act = async () => await handler.Handle(
             new AwardAuctionCommand { Id = auction.Id, WinnerBuyerId = Guid.NewGuid(), FinalPrice = 150_000 },
@@ -60,7 +60,7 @@ public class AwardAuctionCommandHandlerTests
         context.Buyers.Add(buyer);
         await context.SaveChangesAsync(CancellationToken.None);
 
-        var handler = new AwardAuctionCommandHandler(context, currentUser, new FakeNumberGeneratorService());
+        var handler = new AwardAuctionCommandHandler(context, currentUser, new FakeNumberGeneratorService(), new FakeNotificationService(context));
 
         var act = async () => await handler.Handle(
             new AwardAuctionCommand { Id = auction.Id, WinnerBuyerId = buyer.Id, FinalPrice = 100_000 },
@@ -83,7 +83,7 @@ public class AwardAuctionCommandHandlerTests
         context.Buyers.Add(buyer);
         await context.SaveChangesAsync(CancellationToken.None);
 
-        var handler = new AwardAuctionCommandHandler(context, currentUser, new FakeNumberGeneratorService());
+        var handler = new AwardAuctionCommandHandler(context, currentUser, new FakeNumberGeneratorService(), new FakeNotificationService(context));
         await handler.Handle(
             new AwardAuctionCommand { Id = auction.Id, WinnerBuyerId = buyer.Id, FinalPrice = 200_000 },
             CancellationToken.None);
@@ -117,7 +117,7 @@ public class AwardAuctionCommandHandlerTests
         context.Buyers.Add(buyer);
         await context.SaveChangesAsync(CancellationToken.None);
 
-        var handler = new AwardAuctionCommandHandler(context, currentUser, new FakeNumberGeneratorService());
+        var handler = new AwardAuctionCommandHandler(context, currentUser, new FakeNumberGeneratorService(), new FakeNotificationService(context));
         await handler.Handle(
             new AwardAuctionCommand { Id = auction.Id, WinnerBuyerId = buyer.Id, FinalPrice = 150_000 },
             CancellationToken.None);

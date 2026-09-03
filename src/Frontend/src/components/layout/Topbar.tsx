@@ -3,6 +3,7 @@
 import { useTranslations, useLocale } from "next-intl";
 import { usePathname, useRouter } from "@/i18n/navigation";
 import { useAuthStore } from "@/lib/auth-store";
+import { NotificationBell } from "@/components/layout/NotificationBell";
 
 export function Topbar() {
   const t = useTranslations("common");
@@ -31,6 +32,7 @@ export function Topbar() {
         >
           {otherLocale.toUpperCase()}
         </button>
+        <NotificationBell />
         {userName && <span className="text-gray-600">{userName}</span>}
         <button onClick={handleLogout} className="text-danger hover:underline">
           {t("logout")}

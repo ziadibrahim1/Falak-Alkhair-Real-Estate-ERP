@@ -42,7 +42,7 @@ public class UpdateSaleStageCommandHandlerTests
         context.Sales.Add(sale);
         await context.SaveChangesAsync(CancellationToken.None);
 
-        var handler = new UpdateSaleStageCommandHandler(context, currentUser, new FakeNumberGeneratorService());
+        var handler = new UpdateSaleStageCommandHandler(context, currentUser, new FakeNumberGeneratorService(), new FakeNotificationService(context));
         await handler.Handle(new UpdateSaleStageCommand { Id = sale.Id, Stage = SaleStage.Completed }, CancellationToken.None);
 
         var updatedUnit = await context.Units.FindAsync(unitId);
@@ -75,7 +75,7 @@ public class UpdateSaleStageCommandHandlerTests
         context.Sales.Add(sale);
         await context.SaveChangesAsync(CancellationToken.None);
 
-        var handler = new UpdateSaleStageCommandHandler(context, currentUser, new FakeNumberGeneratorService());
+        var handler = new UpdateSaleStageCommandHandler(context, currentUser, new FakeNumberGeneratorService(), new FakeNotificationService(context));
 
         var act = async () => await handler.Handle(
             new UpdateSaleStageCommand { Id = sale.Id, Stage = SaleStage.Qualified }, CancellationToken.None);

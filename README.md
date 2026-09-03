@@ -2,24 +2,25 @@
 
 نظام ERP عقاري لإدارة الأملاك والوساطة العقارية، مصمم لشركة فلك الخير العقارية في السوق السعودي.
 
-> **حالة المشروع:** حتى نهاية Phase 7 (راجع [docs/ARCHITECTURE.md](./docs/ARCHITECTURE.md#10-الموديولات-المبنية-في-هذا-الإصدار)) — Production-ready للنطاق المبني فعليًا، وليس نموذجًا تجريبيًا: مصادقة وتفويض حقيقيان، سجل تدقيق تلقائي، عمليات فعلية على SQL Server. بقية الموديولات (لوحة تحكم بإحصائيات كاملة، الإشعارات، Reports الكاملة ...) موثّقة كخطة تنفيذ واضحة في [docs/ROADMAP.md](./docs/ROADMAP.md) ولم تُبنَ بعد — لا يوجد أي ادّعاء بخلاف ذلك.
+> **حالة المشروع:** حتى نهاية Phase 8 (راجع [docs/ARCHITECTURE.md](./docs/ARCHITECTURE.md#10-الموديولات-المبنية-في-هذا-الإصدار)) — Production-ready للنطاق المبني فعليًا، وليس نموذجًا تجريبيًا: مصادقة وتفويض حقيقيان، سجل تدقيق تلقائي، عمليات فعلية على SQL Server. المتبقي هو Phase 9 فقط (تعميق الاختبارات، مراجعة أمنية، مراجعة النشر) — موثَّق كخطة تنفيذ واضحة في [docs/ROADMAP.md](./docs/ROADMAP.md) ولم يُبنَ بعد — لا يوجد أي ادّعاء بخلاف ذلك.
 
 ## المستندات
 
 - [docs/ARCHITECTURE.md](./docs/ARCHITECTURE.md) — العمارة، Tech Stack، الأمان، RBAC، Audit Log.
 - [docs/DATABASE.md](./docs/DATABASE.md) — ERD وتفاصيل الجداول وحالة الـ Migrations.
-- [docs/ROADMAP.md](./docs/ROADMAP.md) — خطة المراحل القادمة (Phase 8 → 9).
+- [docs/ROADMAP.md](./docs/ROADMAP.md) — خطة المراحل القادمة (Phase 9).
 
 ## ✅ حالة التحقق الفعلي (Build/Test/Run)
 
-على عكس الإصدارات التأسيسية الأولى (حيث لم تتوفر بيئة بها .NET SDK أو Docker)، تم في جلسات بناء Phase 4 إلى 7 تنفيذ كل ما يلي **فعليًا، لا نظريًا**، لكل مرحلة على حدة:
+على عكس الإصدارات التأسيسية الأولى (حيث لم تتوفر بيئة بها .NET SDK أو Docker)، تم في جلسات بناء Phase 4 إلى 8 تنفيذ كل ما يلي **فعليًا، لا نظريًا**، لكل مرحلة على حدة:
 
 - `dotnet restore && dotnet build` على الحل الكامل (5 مشاريع) — نجح بلا أخطاء ولا تحذيرات.
-- `dotnet test` — **61 اختبارًا ناجحًا** (FluentValidation validators، Handlers، منطق توليد العمولات التلقائي (إيجار/بيع/مزاد)، محرك مطابقة المشترين، منع نشر إعلان ناقص، منع الرجوع في مسار المبيعات/المزادات، اعتماد عرض سعر صيانة يرفض المنافسين تلقائيًا، معالجة أحداث Webhook المزادات، واختبارا Pipeline حقيقي يمر عبر `ISender` الفعلي وليس استدعاء Handler مباشرًا).
+- `dotnet test` — **70 اختبارًا ناجحًا** (FluentValidation validators، Handlers، منطق توليد العمولات التلقائي (إيجار/بيع/مزاد)، محرك مطابقة المشترين، منع نشر إعلان ناقص، منع الرجوع في مسار المبيعات/المزادات، اعتماد عرض سعر صيانة يرفض المنافسين تلقائيًا، معالجة أحداث Webhook المزادات، رفع/حذف مستند حقيقي على تخزين وهمي للاختبار، إشعارات (فردية/عامة)، تجميع إحصائيات لوحة التحكم، واختبارا Pipeline حقيقي يمر عبر `ISender` الفعلي وليس استدعاء Handler مباشرًا).
 - توليد migration حقيقي (`dotnet ef migrations add`) وتطبيقه فعليًا على **SQL Server 2022 حقيقي عبر Docker** (`dotnet ef database update`) — قاعدة بيانات كاملة بكل الجداول والفهارس والعلاقات، وليس ملفًا نظريًا لم يُختبر.
 - تشغيل الـ API الفعلي (`dotnet run`) مع تفعيل الـ Seed، تسجيل دخول حقيقي عبر JWT، وتنفيذ طلبات CRUD حقيقية على كل Endpoint جديد — بما فيها اكتشاف وإصلاح خطأ حقيقي في `NumberGeneratorService` (Phase 4) كان سيمنع أول عملية إنشاء فعلية لأي كيان، التحقق من مسار البيع الكامل (إعلان → معاينة → عرض → بيع مكتمل → عمولة مولَّدة تلقائيًا)، دورة صيانة كاملة (إنشاء → إسناد → عرض سعر محسوب من الخادم → اعتماد يرفض المنافسين تلقائيًا → إكمال)، ودورة مزاد كاملة (إنشاء → اعتماد → نشر → Live → Ended → إرساء يرفض السعر تحت الاحتياطي → عمولة تلقائية بضريبة صحيحة → تسوية) بما فيها اختبار نقطة استقبال Webhook المزادات فعليًا (سرّ مشترك، رفض معرّف غير معروف، تحديث فعلي لقاعدة البيانات) — كلها عبر طلبات HTTP حقيقية.
 - **اكتشاف وإصلاح خطأ جوهري عابر لكل المراحل (Phase 7)**: `ValidationBehaviour`/`LoggingBehaviour` لم يكونا يُطبَّقان إطلاقًا على أي أمر بلا نتيجة إرجاع (`IRequest`) في أي موديول منذ Phase 4، بسبب اختلاف سلوك MediatR 12.x عن الإصدارات الأقدم (`IRequest` لم تعد ترث `IRequest<Unit>`). تم تشخيصه بمعزل عن النظام، إصلاحه، وسدّ الفجوة الاختبارية التي أخفته (راجع docs/ROADMAP.md، قسم "إصلاح جوهري عابر لكل المراحل").
-- `npm install && npm run lint && npm run build` على الواجهة الأمامية (58 صفحة، مسارين لغويين) — نجح بلا أخطاء، وتم فتح صفحة `/auctions` فعليًا في متصفح Chromium حقيقي (Playwright) بعد تسجيل دخول والتحقق البصري من البيانات.
+- **دورة مستند كاملة فعليًا (Phase 8)**: رفع ملف PDF حقيقي عبر `multipart/form-data` → تنزيل مطابق بايتًا للأصل → رفض امتداد `.exe` بخطأ 400 (قائمة بيضاء للامتدادات) → حذف → تنزيل بعد الحذف يرفض بـ 404. **دورة إشعار حية**: إسناد عميل محتمل فعليًا عبر الـ API ولّد إشعارًا ظهر مباشرة في `unread-count` وفي قائمة الإشعارات. **إحصائيات لوحة التحكم**: كل حقل من عشرين حقلًا في `/api/dashboard/stats` تحقَّق تطابقه مع بيانات قاعدة البيانات الفعلية، وكذلك كل تقرير من الخمسة الجديدة (JSON وCSV بترميز UTF-8 BOM صحيح للعربية في Excel).
+- `npm install && npm run lint && npm run build` على الواجهة الأمامية (60 صفحة، مسارين لغويين) — نجح بلا أخطاء، وتم فتح `/dashboard`، `/notifications`، `/documents`، `/reports` فعليًا في متصفح Chromium حقيقي (Playwright) بعد تسجيل دخول والتحقق البصري من البيانات — بما في ذلك اكتشاف وإصلاح عطل حي حقيقي (Runtime Crash) عند تبديل تبويبات صفحة `/reports` بسرعة.
 
 بيئة تنفيذ لاحقة قد لا تملك دائمًا وصولًا لـ .NET SDK/Docker بنفس السهولة؛ إن حدث ذلك مستقبلًا، ستُوثَّق أي قيود بنفس الصراحة كما في الإصدارات الأولى بدل الادّعاء بخلاف الواقع.
 
@@ -62,7 +63,7 @@ dotnet tool install --global dotnet-ef
 
 # 4. تطبيق الـ Migrations الموجودة بالفعل في المستودع (InitialCreate → AddTenantsLeasesPayments
 #    → AddAgentsBuyersSellersLeadsCommissions → AddListingsMarketingViewingsOffersSales →
-#    AddMaintenanceModule → AddAuctionsModule) — لا حاجة لإنشاء migration جديد إلا عند إضافة كيانات جديدة فعليًا.
+#    AddMaintenanceModule → AddAuctionsModule → AddNotificationsModule) — لا حاجة لإنشاء migration جديد إلا عند إضافة كيانات جديدة فعليًا.
 #    dotnet run أدناه يطبّقها تلقائيًا في بيئة Development، أو نفّذها يدويًا:
 dotnet ef database update \
   --project FalakAlkhair.Infrastructure \
@@ -109,7 +110,7 @@ cd src/Backend
 dotnet test
 ```
 
-61 اختبارًا ناجحًا (تم التحقق فعليًا). تُغطّي الاختبارات الحالية: FluentValidation validators، منطق Workflow اعتماد عقود إدارة الأملاك، محرك مطابقة المشترين بالعقارات، توليد عمولة المسوّق تلقائيًا (إيجار/بيع/مزاد)، منع نشر إعلان عقاري ناقص البيانات، منع الرجوع لمرحلة سابقة في مسار المبيعات/المزادات، اعتماد عرض سعر صيانة (يرفض العروض المنافسة تلقائيًا ويحدّث الطلب)، منع ضبط حالة "معتمد" لطلب صيانة يدويًا، معالجة أحداث Webhook مزاد وارد (تحديث آمن + رفض حدث غير معروف) — معظمها عبر EF Core InMemory، بالإضافة إلى اختبارَي Pipeline (`ValidationPipelineTests`) يمرّان فعليًا عبر حاوية DI و`ISender` الحقيقيَّين للتأكد أن FluentValidation تُطبَّق على كل أمر (بما فيها الأوامر بلا نتيجة إرجاع).
+70 اختبارًا ناجحًا (تم التحقق فعليًا). تُغطّي الاختبارات الحالية: FluentValidation validators، منطق Workflow اعتماد عقود إدارة الأملاك، محرك مطابقة المشترين بالعقارات، توليد عمولة المسوّق تلقائيًا (إيجار/بيع/مزاد)، منع نشر إعلان عقاري ناقص البيانات، منع الرجوع لمرحلة سابقة في مسار المبيعات/المزادات، اعتماد عرض سعر صيانة (يرفض العروض المنافسة تلقائيًا ويحدّث الطلب)، منع ضبط حالة "معتمد" لطلب صيانة يدويًا، معالجة أحداث Webhook مزاد وارد (تحديث آمن + رفض حدث غير معروف)، رفع/حذف مستند حقيقي على تخزين وهمي (`FakeFileStorageService`) مع التحقق من محتوى الملف نفسه، قواعد التحقق من رفع المستندات (امتداد ممنوع/حجم متجاوز)، تحديد الإشعارات كمقروءة (فردية/جماعية) مع تمييز الإشعار العام عن الموجَّه لمستخدم، وتجميع إحصائيات لوحة التحكم (`GetDashboardStatsQueryHandler`) بالتحقق من صحة كل رقم — معظمها عبر EF Core InMemory، بالإضافة إلى اختبارَي Pipeline (`ValidationPipelineTests`) يمرّان فعليًا عبر حاوية DI و`ISender` الحقيقيَّين للتأكد أن FluentValidation تُطبَّق على كل أمر (بما فيها الأوامر بلا نتيجة إرجاع).
 
 ```bash
 cd src/Frontend
@@ -254,6 +255,30 @@ POST   /api/auctions/{id}/status       [Permission: Auction.Manage]  (انتقا
 POST   /api/auctions/{id}/award        [Permission: Auction.Manage]  (Ended → Awarded؛ يرفض سعرًا أقل من الاحتياطي؛ يولّد عمولة تلقائيًا)
 POST   /api/auctions/{id}/settle       [Permission: Auction.Manage]  (Awarded → Settled)
 POST   /api/integrations/auctions/webhook  [بلا JWT — سرّ مشترك X-Auction-Webhook-Secret]  (نقطة استقبال أحداث منصة المزادات الخارجية)
+
+GET    /api/documents                  [Permission: Document.View]
+GET    /api/documents/by-entity        [Permission: Document.View]  (?entityType=&entityId=)
+GET    /api/documents/{id}/download    [Permission: Document.View]  (النقطة الوحيدة لقراءة محتوى الملف)
+POST   /api/documents                  [Permission: Document.Manage]  (multipart/form-data؛ قائمة بيضاء لامتدادات الملفات + حد 20 ميغابايت)
+DELETE /api/documents/{id}             [Permission: Document.Manage]  (حذف ناعم للسجل + حذف فعلي للملف من القرص)
+
+GET    /api/notifications              [Permission: Notification.View]
+GET    /api/notifications/unread-count [Permission: Notification.View]
+POST   /api/notifications/{id}/mark-read    [Permission: Notification.View]
+POST   /api/notifications/mark-all-read     [Permission: Notification.View]
+
+GET    /api/dashboard/stats            [Permission: Dashboard.View]  (عشرون مؤشرًا مجمَّعًا بطلب واحد)
+
+GET    /api/reports/rent-roll                    [Permission: Report.View]
+GET    /api/reports/rent-roll/export              [Permission: Report.Export]  (CSV بترميز UTF-8 BOM)
+GET    /api/reports/sales-pipeline                [Permission: Report.View]
+GET    /api/reports/sales-pipeline/export         [Permission: Report.Export]
+GET    /api/reports/commission-summary            [Permission: Report.View]
+GET    /api/reports/commission-summary/export     [Permission: Report.Export]
+GET    /api/reports/maintenance-summary           [Permission: Report.View]
+GET    /api/reports/maintenance-summary/export    [Permission: Report.Export]
+GET    /api/reports/occupancy                     [Permission: Report.View]
+GET    /api/reports/occupancy/export              [Permission: Report.Export]
 
 GET    /api/roles                      [Permission: Role.View]
 POST   /api/roles                      [Permission: Role.Manage]

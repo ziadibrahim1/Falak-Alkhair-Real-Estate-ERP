@@ -26,6 +26,7 @@ const NAV_ITEMS = [
   { key: "quotations", href: "/quotations" },
   { key: "marketing", href: "/marketing" },
   { key: "auctions", href: "/auctions" },
+  { key: "notifications", href: "/notifications" },
   { key: "documents", href: "/documents" },
   { key: "reports", href: "/reports" },
   { key: "finance", href: "/finance" },

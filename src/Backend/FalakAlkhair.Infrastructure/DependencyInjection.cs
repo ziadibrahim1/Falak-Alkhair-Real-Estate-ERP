@@ -1,5 +1,6 @@
 using System.Text;
 using FalakAlkhair.Application.Common.Interfaces;
+using FalakAlkhair.Infrastructure.Files;
 using FalakAlkhair.Infrastructure.Identity;
 using FalakAlkhair.Infrastructure.Integrations.Auctions;
 using FalakAlkhair.Infrastructure.Persistence;
@@ -91,6 +92,10 @@ public static class DependencyInjection
 
         services.Configure<AuctionPlatformSettings>(configuration.GetSection(AuctionPlatformSettings.SectionName));
         services.AddHttpClient<IAuctionPlatformClient, HttpAuctionPlatformClient>();
+
+        services.Configure<FileStorageSettings>(configuration.GetSection(FileStorageSettings.SectionName));
+        services.AddScoped<IFileStorageService, LocalDiskFileStorageService>();
+        services.AddScoped<INotificationService, NotificationService>();
 
         return services;
     }

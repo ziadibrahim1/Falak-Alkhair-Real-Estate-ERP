@@ -21,7 +21,8 @@
     "totalRecords": "Total records",
     "logout": "Logout",
     "language": "Language",
-    "roadmapNotice": "This module is on the product roadmap and has not been built yet in this foundational phase."
+    "roadmapNotice": "This module is on the product roadmap and has not been built yet in this foundational phase.",
+    "error": "An error occurred. Please try again."
   },
   "auth": {
     "loginTitle": "Sign In",
@@ -55,6 +56,7 @@
     "quotations": "Maintenance Quotations",
     "marketing": "Marketing",
     "auctions": "Auctions",
+    "notifications": "Notifications",
     "documents": "Documents",
     "reports": "Reports",
     "finance": "Finance",
@@ -63,12 +65,31 @@
   },
   "dashboard": {
     "title": "Dashboard",
+    "sectionProperties": "Properties & Units",
     "totalProperties": "Total Properties",
     "totalUnits": "Total Units",
     "rentedUnits": "Rented Units",
     "availableUnits": "Available Units",
     "activeAgreements": "Active Management Agreements",
-    "expiringAgreements": "Expiring Soon"
+    "expiringAgreements": "Expiring Soon",
+    "sectionLeasing": "Leasing & Collections",
+    "activeLeases": "Active Leases",
+    "activeLeasesAnnualRentValue": "Total Annual Rent",
+    "overduePaymentsCount": "Overdue Payments",
+    "overduePaymentsAmount": "Overdue Amount",
+    "sectionSales": "Sales & Commissions",
+    "salesPipelineCount": "Sales In Pipeline",
+    "salesPipelineValue": "Pipeline Value",
+    "salesCompletedThisMonth": "Sales Completed This Month",
+    "pendingCommissionsAmount": "Pending Commissions",
+    "sectionOperations": "Maintenance & Auctions",
+    "openMaintenanceRequests": "Open Maintenance Requests",
+    "urgentMaintenanceRequests": "Urgent Maintenance Requests",
+    "upcomingAuctions": "Upcoming Auctions",
+    "liveAuctions": "Live Auctions",
+    "sectionCrm": "Leads",
+    "totalLeads": "Total Leads",
+    "newLeadsThisMonth": "New Leads This Month"
   },
   "properties": {
     "title": "Properties",
@@ -285,5 +306,61 @@
     "finalPrice": "Final Price",
     "status": "Status",
     "addNew": "Create New Auction"
+  },
+  "notifications": {
+    "title": "Notifications",
+    "markAllRead": "Mark all as read",
+    "empty": "No notifications.",
+    "viewAll": "View all notifications"
+  },
+  "documents": {
+    "title": "Documents",
+    "fileName": "File Name",
+    "documentType": "Document Type",
+    "entityType": "Linked To",
+    "fileSize": "Size",
+    "uploadedAt": "Uploaded At",
+    "uploadedBy": "Uploaded By",
+    "download": "Download",
+    "delete": "Delete",
+    "upload": "Upload New Document",
+    "selectFile": "Choose File",
+    "confirmDelete": "Delete this document?"
+  },
+  "reports": {
+    "title": "Reports",
+    "rentRoll": "Active Leases (Rent Roll)",
+    "salesPipeline": "Sales Pipeline",
+    "commissionSummary": "Commission Summary",
+    "maintenanceSummary": "Maintenance Summary",
+    "occupancy": "Occupancy",
+    "export": "Export CSV",
+    "noData": "No data.",
+    "col": {
+      "lease": "Lease Number",
+      "property": "Property",
+      "unit": "Unit",
+      "tenant": "Tenant",
+      "startDate": "Start Date",
+      "endDate": "End Date",
+      "annualRent": "Annual Rent",
+      "nextDue": "Next Due",
+      "stage": "Stage",
+      "count": "Count",
+      "totalAskingValue": "Total Asking Value",
+      "agent": "Agent",
+      "pending": "Pending",
+      "approved": "Approved",
+      "paid": "Paid",
+      "totalNet": "Total Net",
+      "status": "Status",
+      "estimatedCost": "Estimated Cost",
+      "actualCost": "Actual Cost",
+      "totalUnits": "Total Units",
+      "rented": "Rented",
+      "sold": "Sold",
+      "available": "Available",
+      "occupancyRate": "Occupancy %"
+    }
   }
 }

@@ -33,12 +33,15 @@ public class CreateMaintenanceRequestCommandHandler : IRequestHandler<CreateMain
     private readonly IApplicationDbContext _context;
     private readonly ICurrentUserService _currentUser;
     private readonly INumberGeneratorService _numberGenerator;
+    private readonly INotificationService _notifications;
 
-    public CreateMaintenanceRequestCommandHandler(IApplicationDbContext context, ICurrentUserService currentUser, INumberGeneratorService numberGenerator)
+    public CreateMaintenanceRequestCommandHandler(
+        IApplicationDbContext context, ICurrentUserService currentUser, INumberGeneratorService numberGenerator, INotificationService notifications)
     {
         _context = context;
         _currentUser = currentUser;
         _numberGenerator = numberGenerator;
+        _notifications = notifications;
     }
 
     public async Task<Guid> Handle(CreateMaintenanceRequestCommand request, CancellationToken cancellationToken)
@@ -75,6 +78,19 @@ public class CreateMaintenanceRequestCommandHandler : IRequestHandler<CreateMain
         };
 
         _context.MaintenanceRequests.Add(maintenanceRequest);
+
+        if (request.Priority is MaintenancePriority.High or MaintenancePriority.Critical)
+        {
+            _notifications.Notify(
+                companyId,
+                _currentUser.BranchId,
+                userId: null,
+                NotificationType.MaintenanceRequestUrgent,
+                "طلب صيانة عاجل",
+                $"طلب صيانة بأولوية {request.Priority} على الوحدة \"{unit.UnitNumber}\": {request.Description}",
+                link: "/maintenance");
+        }
+
         await _context.SaveChangesAsync(cancellationToken);
 
         return maintenanceRequest.Id;

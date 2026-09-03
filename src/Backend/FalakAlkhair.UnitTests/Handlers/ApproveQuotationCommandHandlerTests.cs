@@ -54,7 +54,7 @@ public class ApproveQuotationCommandHandlerTests
         context.MaintenanceQuotations.AddRange(quotationToApprove, siblingQuotation);
         await context.SaveChangesAsync(CancellationToken.None);
 
-        var handler = new ApproveQuotationCommandHandler(context, currentUser);
+        var handler = new ApproveQuotationCommandHandler(context, currentUser, new FakeNotificationService(context));
         await handler.Handle(new ApproveQuotationCommand(quotationToApprove.Id), CancellationToken.None);
 
         (await context.MaintenanceQuotations.FindAsync(quotationToApprove.Id))!.Status.Should().Be(QuotationStatus.Approved);

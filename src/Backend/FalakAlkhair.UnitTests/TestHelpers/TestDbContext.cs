@@ -54,6 +54,8 @@ public class TestDbContext : DbContext, IApplicationDbContext
     public DbSet<Auction> Auctions => Set<Auction>();
     public DbSet<AuctionAuditLog> AuctionAuditLogs => Set<AuctionAuditLog>();
 
+    public DbSet<Notification> Notifications => Set<Notification>();
+
     public static TestDbContext Create()
     {
         var options = new DbContextOptionsBuilder<TestDbContext>()
@@ -75,5 +77,63 @@ public class FakeNumberGeneratorService : INumberGeneratorService
         current++;
         _counters[entityKey] = current;
         return Task.FromResult($"{entityKey}-{current:D6}");
+    }
+}
+
+/// <summary>ينفّذ INotificationService بإضافة الصف مباشرة لسياق الاختبار، بنفس سلوك التنفيذ الحقيقي.</summary>
+public class FakeNotificationService : INotificationService
+{
+    private readonly TestDbContext _context;
+
+    public FakeNotificationService(TestDbContext context)
+    {
+        _context = context;
+    }
+
+    public void Notify(Guid companyId, Guid? branchId, Guid? userId, FalakAlkhair.Domain.Common.Enums.NotificationType type, string title, string message, string? link = null)
+    {
+        _context.Notifications.Add(new Notification
+        {
+            CompanyId = companyId,
+            BranchId = branchId,
+            UserId = userId,
+            Type = type,
+            Title = title,
+            Message = message,
+            Link = link,
+            IsRead = false
+        });
+    }
+}
+
+/// <summary>تخزين ملفات وهمي في الذاكرة لاختبارات المستندات، بدل الكتابة الفعلية على القرص.</summary>
+public class FakeFileStorageService : IFileStorageService
+{
+    private readonly Dictionary<string, byte[]> _files = new();
+
+    public async Task<(string RelativePath, long FileSize)> SaveAsync(Stream content, string fileName, string subPath, CancellationToken cancellationToken)
+    {
+        using var ms = new MemoryStream();
+        await content.CopyToAsync(ms, cancellationToken);
+        var bytes = ms.ToArray();
+        var relativePath = $"{subPath}/{Guid.NewGuid():N}_{fileName}";
+        _files[relativePath] = bytes;
+        return (relativePath, bytes.LongLength);
+    }
+
+    public Task<Stream> OpenReadAsync(string relativePath, CancellationToken cancellationToken)
+    {
+        if (!_files.TryGetValue(relativePath, out var bytes))
+        {
+            throw new FalakAlkhair.Application.Common.Exceptions.NotFoundException("File", relativePath);
+        }
+
+        return Task.FromResult<Stream>(new MemoryStream(bytes));
+    }
+
+    public Task DeleteAsync(string relativePath, CancellationToken cancellationToken)
+    {
+        _files.Remove(relativePath);
+        return Task.CompletedTask;
     }
 }

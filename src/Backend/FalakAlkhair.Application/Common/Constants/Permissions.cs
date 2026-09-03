@@ -38,6 +38,9 @@ public static class Permissions
         public const string Vendor = nameof(Vendor);
         public const string Quotation = nameof(Quotation);
         public const string Auction = nameof(Auction);
+        public const string Notification = nameof(Notification);
+        public const string Report = nameof(Report);
+        public const string Dashboard = nameof(Dashboard);
     }
 
     public static class Actions
@@ -207,6 +210,16 @@ public static class Permissions
     public const string AuctionApprove = "Auction.Approve";
     public const string AuctionManage = "Auction.Manage";
 
+    // --- Notification (الإشعارات) ---
+    public const string NotificationView = "Notification.View";
+
+    // --- Report (التقارير) ---
+    public const string ReportView = "Report.View";
+    public const string ReportExport = "Report.Export";
+
+    // --- Dashboard (لوحة التحكم) ---
+    public const string DashboardView = "Dashboard.View";
+
     public static readonly IReadOnlyList<(string Code, string Module, string Action, string DescriptionAr)> All = new List<(string, string, string, string)>
     {
         (PropertyView, Modules.Property, Actions.View, "عرض العقارات"),
@@ -333,5 +346,9 @@ public static class Permissions
         (AuctionEdit, Modules.Auction, Actions.Edit, "تعديل بيانات مزاد"),
         (AuctionApprove, Modules.Auction, Actions.Approve, "اعتماد ونشر مزاد"),
         (AuctionManage, Modules.Auction, Actions.Manage, "إدارة دورة حياة المزاد (إرساء/تسوية/إلغاء)"),
+        (NotificationView, Modules.Notification, Actions.View, "عرض الإشعارات"),
+        (ReportView, Modules.Report, Actions.View, "عرض التقارير"),
+        (ReportExport, Modules.Report, Actions.Export, "تصدير التقارير (CSV)"),
+        (DashboardView, Modules.Dashboard, Actions.View, "عرض لوحة التحكم بالإحصائيات"),
     };
 }

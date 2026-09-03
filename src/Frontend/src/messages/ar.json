@@ -21,7 +21,8 @@
     "totalRecords": "إجمالي السجلات",
     "logout": "تسجيل الخروج",
     "language": "اللغة",
-    "roadmapNotice": "هذه الوحدة ضمن خارطة الطريق القادمة للنظام ولم تُبنَ بعد في هذه المرحلة التأسيسية."
+    "roadmapNotice": "هذه الوحدة ضمن خارطة الطريق القادمة للنظام ولم تُبنَ بعد في هذه المرحلة التأسيسية.",
+    "error": "حدث خطأ. حاول مرة أخرى."
   },
   "auth": {
     "loginTitle": "تسجيل الدخول",
@@ -55,6 +56,7 @@
     "quotations": "عروض أسعار الصيانة",
     "marketing": "التسويق",
     "auctions": "المزادات",
+    "notifications": "الإشعارات",
     "documents": "المستندات",
     "reports": "التقارير",
     "finance": "المالية",
@@ -63,12 +65,31 @@
   },
   "dashboard": {
     "title": "لوحة التحكم",
+    "sectionProperties": "العقارات والوحدات",
     "totalProperties": "إجمالي العقارات",
     "totalUnits": "إجمالي الوحدات",
     "rentedUnits": "الوحدات المؤجرة",
     "availableUnits": "الوحدات الشاغرة",
     "activeAgreements": "عقود إدارة الأملاك النشطة",
-    "expiringAgreements": "عقود تنتهي قريبًا"
+    "expiringAgreements": "عقود تنتهي قريبًا",
+    "sectionLeasing": "الإيجارات والتحصيل",
+    "activeLeases": "عقود الإيجار السارية",
+    "activeLeasesAnnualRentValue": "إجمالي الإيجار السنوي",
+    "overduePaymentsCount": "دفعات متأخرة",
+    "overduePaymentsAmount": "قيمة المتأخرات",
+    "sectionSales": "المبيعات والعمولات",
+    "salesPipelineCount": "معاملات بيع قيد التنفيذ",
+    "salesPipelineValue": "قيمة مسار المبيعات",
+    "salesCompletedThisMonth": "مبيعات مكتملة هذا الشهر",
+    "pendingCommissionsAmount": "عمولات معلَّقة",
+    "sectionOperations": "الصيانة والمزادات",
+    "openMaintenanceRequests": "طلبات صيانة مفتوحة",
+    "urgentMaintenanceRequests": "طلبات صيانة عاجلة",
+    "upcomingAuctions": "مزادات قادمة",
+    "liveAuctions": "مزادات جارية الآن",
+    "sectionCrm": "العملاء المحتملون",
+    "totalLeads": "إجمالي العملاء المحتملين",
+    "newLeadsThisMonth": "عملاء جدد هذا الشهر"
   },
   "properties": {
     "title": "العقارات",
@@ -285,5 +306,61 @@
     "finalPrice": "السعر النهائي",
     "status": "الحالة",
     "addNew": "إنشاء مزاد جديد"
+  },
+  "notifications": {
+    "title": "الإشعارات",
+    "markAllRead": "تحديد الكل كمقروء",
+    "empty": "لا توجد إشعارات.",
+    "viewAll": "عرض كل الإشعارات"
+  },
+  "documents": {
+    "title": "المستندات",
+    "fileName": "اسم الملف",
+    "documentType": "نوع المستند",
+    "entityType": "مرتبط بـ",
+    "fileSize": "الحجم",
+    "uploadedAt": "تاريخ الرفع",
+    "uploadedBy": "رفعه",
+    "download": "تنزيل",
+    "delete": "حذف",
+    "upload": "رفع مستند جديد",
+    "selectFile": "اختر ملفًا",
+    "confirmDelete": "هل تريد حذف هذا المستند؟"
+  },
+  "reports": {
+    "title": "التقارير",
+    "rentRoll": "عقود الإيجار السارية",
+    "salesPipeline": "مسار المبيعات",
+    "commissionSummary": "ملخص العمولات",
+    "maintenanceSummary": "ملخص الصيانة",
+    "occupancy": "الإشغال",
+    "export": "تصدير CSV",
+    "noData": "لا توجد بيانات.",
+    "col": {
+      "lease": "رقم العقد",
+      "property": "العقار",
+      "unit": "الوحدة",
+      "tenant": "المستأجر",
+      "startDate": "تاريخ البداية",
+      "endDate": "تاريخ النهاية",
+      "annualRent": "الإيجار السنوي",
+      "nextDue": "أقرب استحقاق",
+      "stage": "المرحلة",
+      "count": "العدد",
+      "totalAskingValue": "إجمالي سعر الطلب",
+      "agent": "المسوّق",
+      "pending": "معلَّقة",
+      "approved": "معتمدة",
+      "paid": "مصروفة",
+      "totalNet": "الإجمالي الصافي",
+      "status": "الحالة",
+      "estimatedCost": "التكلفة التقديرية",
+      "actualCost": "التكلفة الفعلية",
+      "totalUnits": "إجمالي الوحدات",
+      "rented": "مؤجَّرة",
+      "sold": "مباعة",
+      "available": "متاحة",
+      "occupancyRate": "نسبة الإشغال %"
+    }
   }
 }

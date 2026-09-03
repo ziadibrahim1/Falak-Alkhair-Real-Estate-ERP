@@ -17,11 +17,13 @@ public class ApproveQuotationCommandHandler : IRequestHandler<ApproveQuotationCo
 {
     private readonly IApplicationDbContext _context;
     private readonly ICurrentUserService _currentUser;
+    private readonly INotificationService _notifications;
 
-    public ApproveQuotationCommandHandler(IApplicationDbContext context, ICurrentUserService currentUser)
+    public ApproveQuotationCommandHandler(IApplicationDbContext context, ICurrentUserService currentUser, INotificationService notifications)
     {
         _context = context;
         _currentUser = currentUser;
+        _notifications = notifications;
     }
 
     public async Task Handle(ApproveQuotationCommand request, CancellationToken cancellationToken)
@@ -57,6 +59,15 @@ public class ApproveQuotationCommandHandler : IRequestHandler<ApproveQuotationCo
         maintenanceRequest.EstimatedCost = quotation.TotalAmount;
         maintenanceRequest.AssignedVendorId = quotation.VendorId;
         maintenanceRequest.Status = MaintenanceStatus.Approved;
+
+        _notifications.Notify(
+            quotation.CompanyId,
+            quotation.BranchId,
+            userId: null,
+            Domain.Common.Enums.NotificationType.QuotationApproved,
+            "تم اعتماد عرض سعر صيانة",
+            $"تم اعتماد عرض السعر \"{quotation.QuotationNumber}\" بإجمالي {quotation.TotalAmount:N2}.",
+            link: "/quotations");
 
         await _context.SaveChangesAsync(cancellationToken);
     }
