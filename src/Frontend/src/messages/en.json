@@ -101,5 +101,27 @@
     "endDate": "End Date",
     "status": "Status",
     "approve": "Approve"
+  },
+  "tenants": {
+    "title": "Tenants",
+    "code": "Tenant Code",
+    "name": "Name",
+    "mobile": "Mobile",
+    "employer": "Employer",
+    "leasesCount": "Leases",
+    "addNew": "Add New Tenant"
+  },
+  "leases": {
+    "title": "Leases",
+    "leaseNumber": "Lease Number",
+    "tenant": "Tenant",
+    "property": "Property",
+    "unit": "Unit",
+    "annualRent": "Annual Rent",
+    "endDate": "End Date",
+    "status": "Status",
+    "activate": "Activate",
+    "terminate": "Terminate",
+    "addNew": "Create New Lease"
   }
 }

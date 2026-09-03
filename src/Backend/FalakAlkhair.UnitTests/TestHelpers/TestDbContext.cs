@@ -28,6 +28,10 @@ public class TestDbContext : DbContext, IApplicationDbContext
     public DbSet<Unit> Units => Set<Unit>();
     public DbSet<PropertyManagementAgreement> PropertyManagementAgreements => Set<PropertyManagementAgreement>();
 
+    public DbSet<Tenant> Tenants => Set<Tenant>();
+    public DbSet<Lease> Leases => Set<Lease>();
+    public DbSet<LeasePayment> LeasePayments => Set<LeasePayment>();
+    public DbSet<Payment> Payments => Set<Payment>();
     public static TestDbContext Create()
     {
         var options = new DbContextOptionsBuilder<TestDbContext>()

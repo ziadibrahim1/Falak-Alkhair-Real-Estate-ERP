@@ -68,3 +68,48 @@ export interface AgreementDto {
   status: number;
   daysRemaining: number;
 }
+
+export interface TenantDto {
+  id: string;
+  tenantCode: string;
+  partyType: number;
+  nameAr: string;
+  nameEn?: string;
+  mobile: string;
+  email?: string;
+  city?: string;
+  employer?: string;
+  isActive: boolean;
+  leasesCount: number;
+}
+
+export interface LeaseDto {
+  id: string;
+  leaseNumber: string;
+  tenantId: string;
+  tenantNameAr: string;
+  ownerId: string;
+  ownerNameAr: string;
+  propertyId: string;
+  propertyName: string;
+  unitId: string;
+  unitNumber: string;
+  startDate: string;
+  endDate: string;
+  annualRentAmount: number;
+  paymentFrequency: number;
+  numberOfPayments: number;
+  status: number;
+  daysRemaining: number;
+}
+
+export interface LeasePaymentDto {
+  id: string;
+  installmentNumber: number;
+  dueDate: string;
+  amount: number;
+  paidAmount: number;
+  remainingAmount: number;
+  status: number;
+  isOverdue: boolean;
+}

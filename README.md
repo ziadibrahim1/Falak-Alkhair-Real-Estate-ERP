@@ -57,7 +57,10 @@ cd ..
 # 3. تثبيت أداة EF Core CLI (مرة واحدة على الجهاز)
 dotnet tool install --global dotnet-ef
 
-# 4. توليد أول Migration (لم يُولَّد بعد — راجع الملاحظة أعلاه)
+# 4. توليد أول Migration (لأول مرة فقط — إن كانت قاعدة بياناتك مُنشأة مسبقًا من إصدار
+#    سابق (Phase 1/2)، شغّل بدلًا من ذلك أمر Migration جديد لجداول Phase 3
+#    (Tenants/Leases/LeasePayments/Payments) بدل InitialCreate:
+#    dotnet ef migrations add AddTenantsLeasesPayments --project FalakAlkhair.Infrastructure --startup-project FalakAlkhair.API --output-dir Persistence/Migrations
 dotnet ef migrations add InitialCreate \
   --project FalakAlkhair.Infrastructure \
   --startup-project FalakAlkhair.API \
@@ -152,6 +155,24 @@ DELETE /api/units/{id}                 [Permission: Unit.Delete]
 GET    /api/agreements                 [Permission: Agreement.View]
 POST   /api/agreements                 [Permission: Agreement.Create]
 POST   /api/agreements/{id}/approve    [Permission: Agreement.Approve]
+
+GET    /api/tenants                    [Permission: Tenant.View]
+POST   /api/tenants                    [Permission: Tenant.Create]
+PUT    /api/tenants/{id}               [Permission: Tenant.Edit]
+DELETE /api/tenants/{id}               [Permission: Tenant.Delete]
+
+GET    /api/leases                     [Permission: Lease.View]
+POST   /api/leases                     [Permission: Lease.Create]   (يولّد جدول السداد تلقائيًا)
+PUT    /api/leases/{id}                [Permission: Lease.Edit]
+POST   /api/leases/{id}/activate       [Permission: Lease.Activate]
+POST   /api/leases/{id}/terminate      [Permission: Lease.Terminate]
+
+GET    /api/payments                   [Permission: Payment.View]
+GET    /api/payments/overdue           [Permission: Payment.View]
+POST   /api/payments                   [Permission: Payment.Create]
+
+GET    /api/reports/owner-statement/{ownerId}    [Permission: Financial.View]
+GET    /api/reports/tenant-statement/{tenantId}  [Permission: Tenant.View]
 
 GET    /api/roles                      [Permission: Role.View]
 POST   /api/roles                      [Permission: Role.Manage]

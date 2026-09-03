@@ -24,5 +24,10 @@ public interface IApplicationDbContext
     DbSet<Unit> Units { get; }
     DbSet<PropertyManagementAgreement> PropertyManagementAgreements { get; }
 
+    DbSet<Tenant> Tenants { get; }
+    DbSet<Lease> Leases { get; }
+    DbSet<LeasePayment> LeasePayments { get; }
+    DbSet<Payment> Payments { get; }
+
     Task<int> SaveChangesAsync(CancellationToken cancellationToken);
 }

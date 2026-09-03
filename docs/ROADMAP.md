@@ -6,21 +6,22 @@
 |---|---|---|
 | **Phase 1** | Architecture, Database, Authentication, Users, Roles, Permissions, Settings | ✅ منجزة |
 | **Phase 2** | Properties, Units, Owners, Property Management | ✅ منجزة (عدا Owner Portal المستقبلي) |
-| **Phase 3** | Tenants, Leases, Payments, Receivables, Owner Statements | ⏭ التالية |
-| **Phase 4** | Buyers, Sellers, Leads, Agents, Commissions | ⏭ |
+| **Phase 3** | Tenants, Leases, Payments, Receivables, Owner Statements | ✅ منجزة (عدا لوحة Overdue في الواجهة الأمامية — الـ API جاهز) |
+| **Phase 4** | Buyers, Sellers, Leads, Agents, Commissions | ⏭ التالية |
 | **Phase 5** | Listings, Marketing, Viewings, Sales | ⏭ |
 | **Phase 6** | Maintenance, Employees, Vendors, Quotations | ⏭ |
 | **Phase 7** | Auctions, Auction Integration Layer, Auction Audit | ⏭ |
 | **Phase 8** | Reports, Notifications, Documents (رفع فعلي), Dashboard (إحصائيات كاملة) | ⏭ |
 | **Phase 9** | Testing (تغطية شاملة), Security Hardening, Performance, Deployment, Documentation | جزئي (أساسيات الأمان والاختبارات موجودة، التغطية الكاملة لاحقًا) |
 
-## تفصيل المرحلة التالية المقترحة (Phase 3)
+## ما تم فعليًا في Phase 3
 
-1. **Tenants**: كيان `Tenant` (بيانات المستأجر + المستندات) بنفس نمط `Owner` الحالي.
-2. **Leases**: كيان `Lease` مرتبط بـ `Unit`/`Tenant`/`Owner`، مع توليد جدول دفعات (`LeasePayment`) تلقائيًا عند تفعيل العقد حسب `PaymentFrequency`.
-3. **Payments / Receivables**: موديول `Payment` عام (Rent, Deposit, Commission, Maintenance Charge) بنفس نمط الترقيم المرجعي والتدقيق المستخدم حاليًا.
-4. **Owner Statements**: تقرير مُجمَّع (Query فقط، بلا كيان تخزين) يحسب: الرصيد الافتتاحي + إيرادات الإيجار − رسوم الإدارة − الصيانة ± الضريبة = صافي مستحق المالك، لفترة زمنية محددة.
-5. **Overdue Dashboard**: استعلام `GetOverduePaymentsQuery` يفلتر `LeasePayment` حيث `DueDate < Today AND RemainingAmount > 0`.
+1. **Tenants**: كيان `Tenant` (CRM كامل + كود مرجعي `TEN-000001`) بنفس نمط `Owner`.
+2. **Leases**: كيان `Lease` مرتبط بـ `Unit`/`Tenant`/`Owner` (منسوخ من `Property.OwnerId` وقت الإنشاء)، مع توليد جدول دفعات (`LeasePayment`) تلقائيًا عند الإنشاء حسب `PaymentFrequency` (شهري/ربعي/نصف سنوي/سنوي)، ومنع تعارض الحجز على نفس الوحدة، وWorkflow: `Draft → Active → Terminated` (تحديث حالة الوحدة تلقائيًا Rented/Available كأثر جانبي حقيقي).
+3. **Payments / Receivables**: `Payment` (معاملة تحصيل فعلية) و`LeasePayment` (القسط المجدول) — تسجيل دفعة يطبّقها تلقائيًا (FIFO) على أقدم قسط غير مسدد إن لم يُحدَّد صراحةً.
+4. **Owner/Tenant Statements**: `GET /api/reports/owner-statement/{ownerId}` و`GET /api/reports/tenant-statement/{tenantId}` — محسوبة من بيانات حقيقية (لا بيانات وهمية)؛ بنود المصروفات/تسويات الدفع للمالك معروضة بقيمة صفر صراحةً لحين بناء موديول الصيانة (Phase 6) وموديول تسوية الملاك الكامل — موثّق في الكود، وليس مخفيًا.
+5. **Overdue Dashboard**: `GET /api/payments/overdue` — API جاهز وحقيقي؛ لوحة العرض في الواجهة الأمامية لم تُبنَ بعد (تُضاف مع موديول التقارير الكامل في Phase 8).
+6. **الواجهة الأمامية**: صفحات قوائم حقيقية (`/tenants`, `/leases` مع أزرار تفعيل/إنهاء) بنفس نمط صفحتَي الملاك والعقود؛ نماذج الإنشاء/التعديل عبر الواجهة لم تُبنَ بعد لأي موديول حتى الآن (كل الإنشاء/التعديل متاح فعليًا عبر الـ API وSwagger).
 
 كل كيان جديد يجب أن يرث `BaseAuditableEntity` (يحصل تلقائيًا على Audit + Soft Delete + Multi-Company scoping)، ويُسجَّل نوعه في `NumberGeneratorService.Prefixes`، وتُضاف صلاحياته إلى `Permissions.All` — هذا هو العقد الذي تلتزم به كل الموديولات الحالية، فلا حاجة لإعادة اختراعه.
 

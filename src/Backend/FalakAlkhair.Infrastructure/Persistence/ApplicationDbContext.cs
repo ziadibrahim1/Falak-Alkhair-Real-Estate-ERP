@@ -31,6 +31,11 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser, Applicati
     public DbSet<Unit> Units => Set<Unit>();
     public DbSet<PropertyManagementAgreement> PropertyManagementAgreements => Set<PropertyManagementAgreement>();
 
+    public DbSet<Tenant> Tenants => Set<Tenant>();
+    public DbSet<Lease> Leases => Set<Lease>();
+    public DbSet<LeasePayment> LeasePayments => Set<LeasePayment>();
+    public DbSet<Payment> Payments => Set<Payment>();
+
     protected override void OnModelCreating(ModelBuilder builder)
     {
         base.OnModelCreating(builder);
@@ -52,5 +57,9 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser, Applicati
         builder.Entity<Unit>().HasQueryFilter(e => !e.IsDeleted);
         builder.Entity<PropertyManagementAgreement>().HasQueryFilter(e => !e.IsDeleted);
         builder.Entity<Document>().HasQueryFilter(e => !e.IsDeleted);
+        builder.Entity<Tenant>().HasQueryFilter(e => !e.IsDeleted);
+        builder.Entity<Lease>().HasQueryFilter(e => !e.IsDeleted);
+        builder.Entity<LeasePayment>().HasQueryFilter(e => !e.IsDeleted);
+        builder.Entity<Payment>().HasQueryFilter(e => !e.IsDeleted);
     }
 }

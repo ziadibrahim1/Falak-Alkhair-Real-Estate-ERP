@@ -9,22 +9,26 @@ using Microsoft.Extensions.Logging;
 
 namespace FalakAlkhair.Infrastructure.Persistence.Seed;
 
+/// <summary>
+/// بيانات تطويرية أولية (Development Seed): شركة فلك الخير، فرعها الرئيسي،
+/// كتالوج الصلاحيات، الأدوار الأساسية (مع منح SuperAdmin كل الصلاحيات)،
+/// ومستخدم إداري واحد لأغراض التطوير فقط (كلمة المرور تُقرأ من الإعدادات
+/// ولا تُكتب أبدًا داخل الكود المصدري)، إضافة لبيانات تجريبية بسيطة تغطي
+/// الأملاك والإيجارات لتسهيل الاختبار اليدوي والتطوير الأمامي.
+/// </summary>
 public static class ApplicationDbContextSeed
 {
     public static async Task SeedAsync(IServiceProvider services, string adminPassword)
     {
-        Console.WriteLine("SEED-STEP 0: entered SeedAsync");
         var context = services.GetRequiredService<ApplicationDbContext>();
         var roleManager = services.GetRequiredService<RoleManager<ApplicationRole>>();
         var userManager = services.GetRequiredService<UserManager<ApplicationUser>>();
         var logger = services.GetRequiredService<ILoggerFactory>().CreateLogger("Seed");
 
-        Console.WriteLine("SEED-STEP 1: before MigrateAsync");
         await context.Database.MigrateAsync();
-        Console.WriteLine("SEED-STEP 2: after MigrateAsync");
 
+        // 1) الصلاحيات
         var existingCodes = await context.Permissions.Select(p => p.Code).ToListAsync();
-        Console.WriteLine("SEED-STEP 3: after Permissions select, count=" + existingCodes.Count);
         foreach (var (code, module, action, descriptionAr) in Permissions.All)
         {
             if (!existingCodes.Contains(code))
@@ -33,10 +37,9 @@ public static class ApplicationDbContextSeed
             }
         }
         await context.SaveChangesAsync();
-        Console.WriteLine("SEED-STEP 4: after permissions SaveChanges");
 
+        // 2) الشركة والفرع الرئيسي
         var company = await context.Companies.FirstOrDefaultAsync();
-        Console.WriteLine("SEED-STEP 5: after Companies FirstOrDefault, company is null = " + (company is null));
         if (company is null)
         {
             company = new Company
@@ -50,10 +53,8 @@ public static class ApplicationDbContextSeed
             context.Companies.Add(company);
             await context.SaveChangesAsync();
         }
-        Console.WriteLine("SEED-STEP 6: company ready, id=" + company.Id);
 
         var mainBranch = await context.Branches.FirstOrDefaultAsync(b => b.CompanyId == company.Id);
-        Console.WriteLine("SEED-STEP 7: after Branches FirstOrDefault, mainBranch is null = " + (mainBranch is null));
         if (mainBranch is null)
         {
             mainBranch = new Branch
@@ -68,13 +69,12 @@ public static class ApplicationDbContextSeed
             context.Branches.Add(mainBranch);
             await context.SaveChangesAsync();
         }
-        Console.WriteLine("SEED-STEP 8: branch ready, id=" + mainBranch.Id);
 
+        // 3) الأدوار الأساسية
         foreach (var roleName in typeof(SystemRoles)
                      .GetFields().Where(f => f.IsLiteral)
                      .Select(f => (string)f.GetRawConstantValue()!))
         {
-            Console.WriteLine("SEED-STEP 9: checking role " + roleName);
             if (await roleManager.FindByNameAsync(roleName) is not null) continue;
 
             var role = new ApplicationRole
@@ -86,12 +86,11 @@ public static class ApplicationDbContextSeed
             };
 
             await roleManager.CreateAsync(role);
-            Console.WriteLine("SEED-STEP 10: created role " + roleName);
         }
-        Console.WriteLine("SEED-STEP 11: roles loop done");
 
+        // SuperAdmin و SystemAdministrator يحصلان على كل الصلاحيات تلقائيًا (بما فيها صلاحيات
+        // الوحدات الجديدة — إعادة تشغيل الـ Seed بعد إضافة موديول جديد يمنحها تلقائيًا لهما).
         var allPermissions = await context.Permissions.ToListAsync();
-        Console.WriteLine("SEED-STEP 12: allPermissions count=" + allPermissions.Count);
         foreach (var roleName in new[] { SystemRoles.SuperAdmin, SystemRoles.SystemAdministrator })
         {
             var role = await roleManager.FindByNameAsync(roleName);
@@ -104,8 +103,8 @@ public static class ApplicationDbContextSeed
             }
         }
         await context.SaveChangesAsync();
-        Console.WriteLine("SEED-STEP 13: role permissions saved");
 
+        // Viewer يحصل فقط على صلاحيات العرض (View) كمثال لدور محدود الصلاحية.
         var viewerRole = await roleManager.FindByNameAsync(SystemRoles.Viewer);
         if (viewerRole is not null)
         {
@@ -116,8 +115,8 @@ public static class ApplicationDbContextSeed
             }
             await context.SaveChangesAsync();
         }
-        Console.WriteLine("SEED-STEP 14: viewer role permissions saved");
 
+        // 4) مستخدم إداري للتطوير فقط — لا يُنشأ إن كانت كلمة المرور فارغة (بيئة إنتاج بلا Seed حساسة).
         if (string.IsNullOrWhiteSpace(adminPassword))
         {
             logger.LogWarning("تخطي إنشاء مستخدم Admin الافتراضي: لم تُحدَّد كلمة مرور في الإعدادات (Seed:AdminPassword).");
@@ -125,7 +124,6 @@ public static class ApplicationDbContextSeed
         }
 
         const string adminUserName = "admin";
-        Console.WriteLine("SEED-STEP 15: before FindByNameAsync admin");
         if (await userManager.FindByNameAsync(adminUserName) is null)
         {
             var adminUser = new ApplicationUser
@@ -150,11 +148,15 @@ public static class ApplicationDbContextSeed
                 logger.LogError("فشل إنشاء مستخدم Admin الافتراضي: {Errors}", string.Join(" ", result.Errors.Select(e => e.Description)));
             }
         }
-        Console.WriteLine("SEED-STEP 16: admin user step done");
 
-        if (!await context.Owners.AnyAsync(o => o.CompanyId == company.Id))
+        // 5) بيانات تجريبية بسيطة (Sample Owner/Property/Unit) لتسهيل الاختبار اليدوي.
+        Owner? sampleOwner = await context.Owners.FirstOrDefaultAsync(o => o.CompanyId == company.Id);
+        Property? sampleProperty = null;
+        Unit? sampleUnit = null;
+
+        if (sampleOwner is null)
         {
-            var sampleOwner = new Owner
+            sampleOwner = new Owner
             {
                 CompanyId = company.Id,
                 BranchId = mainBranch.Id,
@@ -169,7 +171,7 @@ public static class ApplicationDbContextSeed
             context.Owners.Add(sampleOwner);
             await context.SaveChangesAsync();
 
-            var sampleProperty = new Property
+            sampleProperty = new Property
             {
                 CompanyId = company.Id,
                 BranchId = mainBranch.Id,
@@ -187,7 +189,7 @@ public static class ApplicationDbContextSeed
             context.Properties.Add(sampleProperty);
             await context.SaveChangesAsync();
 
-            context.Units.Add(new Unit
+            sampleUnit = new Unit
             {
                 CompanyId = company.Id,
                 BranchId = mainBranch.Id,
@@ -201,9 +203,91 @@ public static class ApplicationDbContextSeed
                 Bedrooms = 3,
                 Bathrooms = 2,
                 RentalPrice = 35000
+            };
+            context.Units.Add(sampleUnit);
+            await context.SaveChangesAsync();
+        }
+        else
+        {
+            sampleProperty = await context.Properties.FirstOrDefaultAsync(p => p.CompanyId == company.Id);
+            sampleUnit = sampleProperty is null ? null : await context.Units.FirstOrDefaultAsync(u => u.PropertyId == sampleProperty.Id);
+        }
+
+        // 6) مستأجر وعقد إيجار تجريبيان — يغطيان جدول السداد التلقائي ودفعة مسددة جزئيًا،
+        // ليكون موديول الإيجارات قابلًا للاختبار الفوري من الواجهة الأمامية دون إدخال يدوي.
+        if (sampleProperty is not null && sampleUnit is not null && !await context.Tenants.AnyAsync(t => t.CompanyId == company.Id))
+        {
+            var sampleTenant = new Tenant
+            {
+                CompanyId = company.Id,
+                BranchId = mainBranch.Id,
+                TenantCode = "TEN-000001",
+                PartyType = PartyType.Individual,
+                NameAr = "خالد بن سعد العتيبي",
+                Mobile = "0555555555",
+                NationalId = "1099999999",
+                City = "الرياض",
+                Employer = "شركة اتصالات",
+                IsActive = true
+            };
+            context.Tenants.Add(sampleTenant);
+            await context.SaveChangesAsync();
+
+            var leaseStart = new DateTime(DateTime.UtcNow.Year, 1, 1, 0, 0, 0, DateTimeKind.Utc);
+            var sampleLease = new Lease
+            {
+                CompanyId = company.Id,
+                BranchId = mainBranch.Id,
+                LeaseNumber = "LEASE-000001",
+                TenantId = sampleTenant.Id,
+                OwnerId = sampleOwner.Id,
+                PropertyId = sampleProperty.Id,
+                UnitId = sampleUnit.Id,
+                StartDate = leaseStart,
+                EndDate = leaseStart.AddYears(1).AddDays(-1),
+                AnnualRentAmount = 35000,
+                PaymentFrequency = PaymentFrequency.Quarterly,
+                NumberOfPayments = 4,
+                SecurityDeposit = 3500,
+                CommissionPercentage = 5,
+                VatPercentage = 15,
+                Status = LeaseStatus.Active,
+                ActivatedAt = leaseStart
+            };
+
+            for (var i = 1; i <= 4; i++)
+            {
+                sampleLease.Payments.Add(new LeasePayment
+                {
+                    CompanyId = company.Id,
+                    BranchId = mainBranch.Id,
+                    InstallmentNumber = i,
+                    DueDate = leaseStart.AddMonths((i - 1) * 3),
+                    Amount = 8750,
+                    PaidAmount = i == 1 ? 8750 : 0,
+                    Status = i == 1 ? LeasePaymentStatus.Paid : LeasePaymentStatus.Pending
+                });
+            }
+
+            context.Leases.Add(sampleLease);
+            sampleUnit.CurrentStatus = UnitStatus.Rented;
+            await context.SaveChangesAsync();
+
+            var firstInstallment = sampleLease.Payments.First(p => p.InstallmentNumber == 1);
+            context.Payments.Add(new Payment
+            {
+                CompanyId = company.Id,
+                BranchId = mainBranch.Id,
+                PaymentNumber = "PAY-000001",
+                LeaseId = sampleLease.Id,
+                LeasePaymentId = firstInstallment.Id,
+                Amount = 8750,
+                PaymentDate = leaseStart,
+                PaymentMethod = PaymentMethod.BankTransfer,
+                ReferenceNumber = "REF-0001",
+                BankName = "البنك الأهلي السعودي"
             });
             await context.SaveChangesAsync();
         }
-        Console.WriteLine("SEED-STEP 17: sample data step done, SeedAsync fully complete");
     }
 }

@@ -101,5 +101,27 @@
     "endDate": "تاريخ النهاية",
     "status": "الحالة",
     "approve": "اعتماد"
+  },
+  "tenants": {
+    "title": "المستأجرون",
+    "code": "كود المستأجر",
+    "name": "الاسم",
+    "mobile": "الجوال",
+    "employer": "جهة العمل",
+    "leasesCount": "عدد العقود",
+    "addNew": "إضافة مستأجر جديد"
+  },
+  "leases": {
+    "title": "عقود الإيجار",
+    "leaseNumber": "رقم العقد",
+    "tenant": "المستأجر",
+    "property": "العقار",
+    "unit": "الوحدة",
+    "annualRent": "الإيجار السنوي",
+    "endDate": "تاريخ النهاية",
+    "status": "الحالة",
+    "activate": "تفعيل",
+    "terminate": "إنهاء",
+    "addNew": "إنشاء عقد إيجار جديد"
   }
 }

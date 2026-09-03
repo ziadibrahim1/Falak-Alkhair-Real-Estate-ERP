@@ -20,6 +20,9 @@ public static class Permissions
         public const string AuditLog = nameof(AuditLog);
         public const string Financial = nameof(Financial);
         public const string Settings = nameof(Settings);
+        public const string Tenant = nameof(Tenant);
+        public const string Lease = nameof(Lease);
+        public const string Payment = nameof(Payment);
     }
 
     public static class Actions
@@ -82,6 +85,23 @@ public static class Permissions
     // --- Settings ---
     public const string SettingsManage = "Settings.Manage";
 
+    // --- Tenant (المستأجرون) ---
+    public const string TenantView = "Tenant.View";
+    public const string TenantCreate = "Tenant.Create";
+    public const string TenantEdit = "Tenant.Edit";
+    public const string TenantDelete = "Tenant.Delete";
+
+    // --- Lease (عقود الإيجار) ---
+    public const string LeaseView = "Lease.View";
+    public const string LeaseCreate = "Lease.Create";
+    public const string LeaseEdit = "Lease.Edit";
+    public const string LeaseActivate = "Lease.Activate";
+    public const string LeaseTerminate = "Lease.Terminate";
+
+    // --- Payment (التحصيل والمدفوعات) ---
+    public const string PaymentView = "Payment.View";
+    public const string PaymentCreate = "Payment.Create";
+
     public static readonly IReadOnlyList<(string Code, string Module, string Action, string DescriptionAr)> All = new List<(string, string, string, string)>
     {
         (PropertyView, Modules.Property, Actions.View, "عرض العقارات"),
@@ -119,5 +139,19 @@ public static class Permissions
         (FinancialManage, Modules.Financial, Actions.Financial, "إدارة العمليات المالية"),
 
         (SettingsManage, Modules.Settings, Actions.Manage, "إدارة إعدادات النظام"),
+
+        (TenantView, Modules.Tenant, Actions.View, "عرض المستأجرين"),
+        (TenantCreate, Modules.Tenant, Actions.Create, "إضافة مستأجر"),
+        (TenantEdit, Modules.Tenant, Actions.Edit, "تعديل مستأجر"),
+        (TenantDelete, Modules.Tenant, Actions.Delete, "حذف مستأجر"),
+
+        (LeaseView, Modules.Lease, Actions.View, "عرض عقود الإيجار"),
+        (LeaseCreate, Modules.Lease, Actions.Create, "إنشاء عقد إيجار"),
+        (LeaseEdit, Modules.Lease, Actions.Edit, "تعديل عقد إيجار"),
+        (LeaseActivate, Modules.Lease, Actions.Approve, "تفعيل عقد إيجار"),
+        (LeaseTerminate, Modules.Lease, Actions.Manage, "إنهاء عقد إيجار"),
+
+        (PaymentView, Modules.Payment, Actions.View, "عرض المدفوعات"),
+        (PaymentCreate, Modules.Payment, Actions.Create, "تسجيل دفعة"),
     };
 }

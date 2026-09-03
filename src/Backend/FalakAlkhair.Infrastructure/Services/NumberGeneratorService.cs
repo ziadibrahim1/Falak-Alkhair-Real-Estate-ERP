@@ -19,6 +19,7 @@ public class NumberGeneratorService : INumberGeneratorService
         ["PROPERTY"] = "PROP",
         ["UNIT"] = "UNIT",
         ["OWNER"] = "OWNER",
+        ["TEN"] = "TEN",
         ["PMA"] = "PMA",
         ["LEASE"] = "LEASE",
         ["SALE"] = "SALE",
