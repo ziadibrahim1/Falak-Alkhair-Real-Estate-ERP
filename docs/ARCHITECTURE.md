@@ -6,7 +6,7 @@
 
 النظام هو ERP عقاري لشركة فلك الخير العقارية (السوق السعودي)، مبني بعمارة Clean Architecture قابلة للتوسع دون إعادة كتابة الأساس عند إضافة موديولات جديدة (تأجير، مبيعات، صيانة، مزادات ...).
 
-**حالة هذا الإصدار:** حتى نهاية Phase 4 (راجع ROADMAP.md) — كامل الوظائف وقابل للتشغيل الفعلي، وليس نموذجًا تجريبيًا: Authentication/Authorization حقيقي، Audit Log حقيقي، عمليات CRUD حقيقية على قاعدة بيانات حقيقية (SQL Server)، وليس بيانات وهمية. في هذه الجلسة تحديدًا تم فعليًا: `dotnet build`/`dotnet test` (25 اختبارًا ناجحًا)، توليد وتطبيق Migration حقيقي على SQL Server 2022 (Docker)، تشغيل الـ API الفعلي، وتنفيذ طلبات حقيقية على كل Endpoint جديد (تسجيل دخول، إنشاء، قوائم) — وليس مجرد مراجعة كود بصرية. الموديولات غير المبنية بعد (المبيعات، الصيانة، المزادات ...) موثّقة بوضوح في ROADMAP.md ولا يوجد أي ادّعاء بأنها منفَّذة.
+**حالة هذا الإصدار:** حتى نهاية Phase 7 (راجع ROADMAP.md) — كامل الوظائف وقابل للتشغيل الفعلي، وليس نموذجًا تجريبيًا: Authentication/Authorization حقيقي، Audit Log حقيقي، عمليات CRUD حقيقية على قاعدة بيانات حقيقية (SQL Server)، وليس بيانات وهمية. تم فعليًا عبر كل مرحلة: `dotnet build`/`dotnet test` (61 اختبارًا ناجحًا حاليًا)، توليد وتطبيق كل Migration على SQL Server 2022 حقيقي (Docker)، تشغيل الـ API الفعلي، وتنفيذ طلبات HTTP حقيقية على كل Endpoint جديد (تسجيل دخول، إنشاء، قوائم، انتقالات الحالة) — وليس مجرد مراجعة كود بصرية. الموديولات غير المبنية بعد (لوحة التحكم بإحصائيات كاملة، الإشعارات، رفع المستندات الفعلي، التقارير المخصَّصة ...) موثّقة بوضوح في ROADMAP.md ولا يوجد أي ادّعاء بأنها منفَّذة.
 
 ## 2. Technology Stack
 
@@ -53,6 +53,8 @@ Infrastructure (FalakAlkhair.Infrastructure) — تنفّذ عقود Application
 
 هذا يفصل عمليات الكتابة (تتحقق من صحة البيانات، تُحدِّث الحالة، تُطلق Audit) عن عمليات القراءة (تُحسَّن للعرض والتصفح: Pagination/Filter/Sort عبر Server-side Projection مباشرة لتفادي N+1 queries).
 
+**تنبيه معماري مهم (اكتُشف وأُصلِح أثناء Phase 7)**: القيد العام على `ValidationBehaviour<TRequest,TResponse>`/`LoggingBehaviour<TRequest,TResponse>` (وهما `IPipelineBehavior<,>` مسجَّلان عبر `AddOpenBehavior` في `Application/DependencyInjection.cs`) هو `where TRequest : notnull` — **وليس** `where TRequest : IRequest<TResponse>` كما هو شائع في قوالب Clean Architecture الأقدم. السبب: في MediatR 12.x لم تعد الواجهة غير المعمَّمة `IRequest` (المستخدَمة في كل أمر بلا نتيجة إرجاع — اعتماد، إلغاء، تحديث حالة، إسناد) ترث `IRequest<Unit>`؛ فلو أُعيد القيد إلى `IRequest<TResponse>` سيتوقف DI Container عن تسجيل هذين الـ Behaviors صامتًا لكل أمر من هذا النوع، وتُتخطى FluentValidation بالكامل دون أي خطأ ظاهر (راجع ROADMAP.md، قسم "إصلاح جوهري عابر لكل المراحل" لتفاصيل الاكتشاف والتحقق الكامل). **لا تُعِد هذا القيد إلى `IRequest<TResponse>` مستقبلاً** — اختبار `FalakAlkhair.UnitTests/Behaviours/ValidationPipelineTests.cs` يرسل أوامر عبر `ISender` الفعلي تحديدًا لرصد هذا الانحدار.
+
 ## 5. الأمان والصلاحيات (RBAC)
 
 - **المصادقة**: تسجيل الدخول يصدر Access Token (JWT قصير العمر، 30 دقيقة افتراضيًا) و Refresh Token (14 يومًا، عشوائي 512-bit، يُخزَّن في جدول `RefreshTokens` ويُدوَّر Rotation عند كل استخدام لمنع إعادة الاستخدام).
@@ -73,9 +75,12 @@ Infrastructure (FalakAlkhair.Infrastructure) — تنفّذ عقود Application
 
 `NumberGeneratorService` يستخدم عبارة SQL Server ذرّية واحدة (`UPDATE ... OUTPUT`) على جدول `NumberSequences` بدل قفل تطبيقي (Application Lock)، فتضمن تفرّد الأرقام (`PROP-000001`, `LEASE-000001` ...) تحت تزامن عالٍ دون Race Condition، ودون حجز اتصالات طويلة.
 
-## 8. طبقة تكامل المزادات (مستقبلية)
+## 8. طبقة تكامل المزادات
 
-بحسب المتطلبات، منصة المزادات مستقلة ولا تُدمج داخل هذا النظام. الـ ERP يحتفظ فقط بالبيانات الأساسية للمزاد (Master Data)، بينما تُبنى طبقة تكامل (`/api/integrations/auctions/*` + Webhooks: `AuctionCreated`, `BidPlaced`, `AuctionEnded` ...) في مرحلة لاحقة (راجع ROADMAP.md، Phase 7) خلف Interface قابل لاستبدال المزوّد الفعلي دون تغيير باقي النظام.
+بحسب المتطلبات، منصة المزادات مستقلة ولا تُدمج داخل هذا النظام. الـ ERP يحتفظ بالبيانات الأساسية للمزاد (Master Data) عبر `Auction`/`AuctionAuditLog`، وطبقة التكامل مبنية فعليًا (Phase 7):
+- **الاتجاه الصادر**: `IAuctionPlatformClient` (عقد في Application) ينفَّذه `HttpAuctionPlatformClient` (HttpClient حقيقي) في `Infrastructure/Integrations/Auctions`، يُستدعى عند `POST /api/auctions/{id}/publish`. إن لم تُضبَط إعدادات المزوّد الفعلي (`AuctionIntegration:BaseUrl`/`ApiKey`) يرمي `BusinessRuleException` واضحة بدل التظاهر بتكامل غير موجود — النشر الداخلي في الـ ERP لا يفشل بسبب ذلك، فقط يُسجَّل السبب في `AuctionAuditLog`.
+- **الاتجاه الوارد**: `AuctionWebhooksController` على مسار مستقل `/api/integrations/auctions/webhook` (لا يرث `BaseApiController` عمدًا لتفادي ازدواج المسار الناتج عن `[Route]` بخاصية `Inherited=true`)، محمي بسرّ مشترك (`X-Auction-Webhook-Secret`) بدل JWT لأن المستدعي نظام خارجي وليس مستخدمًا داخل النظام. يطبّق فقط تحديثات معلوماتية آمنة (سعر/عدد المزايدات، تمديد الوقت، الانتقال إلى Live/Ended) — الإرساء والتسوية المالية يبقيان أمرين داخليين صريحين لا يُفعَّلان تلقائيًا من حدث خارجي.
+- كل حدث (صادر أو وارد) يُسجَّل في `AuctionAuditLog` — سجل Append-Only بلا أمر تعديل/حذف مقابل له في طبقة Application.
 
 ## 9. هيكل المجلدات
 
@@ -124,7 +129,10 @@ Infrastructure (FalakAlkhair.Infrastructure) — تنفّذ عقود Application
 | فنيو الصيانة (Maintenance Employees) | ✅ CRUD كامل | ✅ قائمة + بحث/تصفّح |
 | موردو الصيانة (Vendors) | ✅ CRUD كامل | ✅ قائمة + بحث/تصفّح |
 | عروض أسعار الصيانة (Quotations) — بنود + حساب تلقائي + اعتماد | ✅ CRUD + `/approve` | ✅ قائمة + بحث/تصفّح |
+| المزادات (Auctions) — دورة حياة كاملة + عمولة تلقائية عند الإرساء | ✅ CRUD + `/approve` + `/publish` + `/status` + `/award` + `/settle` | ✅ قائمة + بحث/تصفّح |
+| سجل تدقيق المزاد (Auction Audit Log) — Append-Only | ✅ `/audit-log` | — (يُعرض ضمن تفاصيل المزاد لاحقًا) |
+| تكامل منصة المزادات المستقلة (صادر + Webhook وارد) | ✅ (يرمي خطأ واضحًا بلا مزوّد فعلي مضبوط) | — |
 | المستندات (Document) | ✅ كيان + جدول جاهز | — (رفع الملفات لاحقًا) |
 | المرجّعات المركزية (Number Generator) | ✅ (متزامن مع بيانات البذر) | — |
 
-بقية الموديولات (Auctions, Reports/Notifications الكاملة ...) موثّقة كخطة تنفيذ في [ROADMAP.md](./ROADMAP.md) ولم تُبنَ بعد.
+بقية الموديولات (لوحة تحكم بإحصائيات كاملة، الإشعارات، رفع المستندات الفعلي، التقارير المخصَّصة ...) موثّقة كخطة تنفيذ في [ROADMAP.md](./ROADMAP.md) ولم تُبنَ بعد.

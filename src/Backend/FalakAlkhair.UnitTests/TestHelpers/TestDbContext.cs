@@ -51,6 +51,9 @@ public class TestDbContext : DbContext, IApplicationDbContext
     public DbSet<MaintenanceQuotation> MaintenanceQuotations => Set<MaintenanceQuotation>();
     public DbSet<MaintenanceQuotationItem> MaintenanceQuotationItems => Set<MaintenanceQuotationItem>();
 
+    public DbSet<Auction> Auctions => Set<Auction>();
+    public DbSet<AuctionAuditLog> AuctionAuditLogs => Set<AuctionAuditLog>();
+
     public static TestDbContext Create()
     {
         var options = new DbContextOptionsBuilder<TestDbContext>()

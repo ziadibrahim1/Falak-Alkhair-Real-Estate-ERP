@@ -115,6 +115,7 @@ public class CommissionConfiguration : IEntityTypeConfiguration<Commission>
         builder.HasOne(x => x.Agent).WithMany(a => a.Commissions).HasForeignKey(x => x.AgentId).OnDelete(DeleteBehavior.Restrict);
         builder.HasOne(x => x.Lease).WithMany(l => l.Commissions).HasForeignKey(x => x.LeaseId).OnDelete(DeleteBehavior.Restrict);
         builder.HasOne(x => x.Sale).WithMany(s => s.Commissions).HasForeignKey(x => x.SaleId).OnDelete(DeleteBehavior.Restrict);
+        builder.HasOne(x => x.Auction).WithMany(a => a.Commissions).HasForeignKey(x => x.AuctionId).OnDelete(DeleteBehavior.Restrict);
 
         builder.HasIndex(x => x.Status);
         builder.HasIndex(x => x.AgentId);

@@ -4,8 +4,8 @@ using FalakAlkhair.Domain.Common.Enums;
 namespace FalakAlkhair.Domain.Entities;
 
 /// <summary>
-/// عمولة مسوّق عقاري ناتجة عن معاملة فعلية: عقد إيجار (LeaseId) أو معاملة بيع
-/// (SaleId). مصدر المزادات (AuctionId) سيُضاف بنفس النمط عند بناء Phase 7.
+/// عمولة مسوّق عقاري ناتجة عن معاملة فعلية: عقد إيجار (LeaseId)، معاملة بيع
+/// (SaleId)، أو مزاد مُرسى (AuctionId).
 /// </summary>
 public class Commission : BaseAuditableEntity
 {
@@ -21,6 +21,9 @@ public class Commission : BaseAuditableEntity
 
     public Guid? SaleId { get; set; }
     public Sale? Sale { get; set; }
+
+    public Guid? AuctionId { get; set; }
+    public Auction? Auction { get; set; }
 
     public decimal BaseAmount { get; set; }
     public decimal CommissionPercentage { get; set; }

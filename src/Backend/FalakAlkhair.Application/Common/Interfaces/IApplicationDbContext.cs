@@ -47,5 +47,8 @@ public interface IApplicationDbContext
     DbSet<MaintenanceQuotation> MaintenanceQuotations { get; }
     DbSet<MaintenanceQuotationItem> MaintenanceQuotationItems { get; }
 
+    DbSet<Auction> Auctions { get; }
+    DbSet<AuctionAuditLog> AuctionAuditLogs { get; }
+
     Task<int> SaveChangesAsync(CancellationToken cancellationToken);
 }

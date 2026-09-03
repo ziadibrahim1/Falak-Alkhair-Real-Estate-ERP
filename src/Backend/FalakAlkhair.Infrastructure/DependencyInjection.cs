@@ -1,6 +1,7 @@
 using System.Text;
 using FalakAlkhair.Application.Common.Interfaces;
 using FalakAlkhair.Infrastructure.Identity;
+using FalakAlkhair.Infrastructure.Integrations.Auctions;
 using FalakAlkhair.Infrastructure.Persistence;
 using FalakAlkhair.Infrastructure.Persistence.Interceptors;
 using FalakAlkhair.Infrastructure.Services;
@@ -87,6 +88,9 @@ public static class DependencyInjection
         services.AddScoped<IIdentityService, IdentityService>();
         services.AddScoped<IRoleManagementService, RoleManagementService>();
         services.AddScoped<JwtTokenService>();
+
+        services.Configure<AuctionPlatformSettings>(configuration.GetSection(AuctionPlatformSettings.SectionName));
+        services.AddHttpClient<IAuctionPlatformClient, HttpAuctionPlatformClient>();
 
         return services;
     }

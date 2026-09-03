@@ -1,6 +1,6 @@
 # خارطة الطريق — المراحل القادمة
 
-هذا الإصدار غطّى **PHASE 1** إلى **PHASE 6** بالكامل. الجدول أدناه يلخّص ما تبقّى، بنفس ترقيم المراحل الأصلي في متطلبات المشروع.
+هذا الإصدار غطّى **PHASE 1** إلى **PHASE 7** بالكامل. الجدول أدناه يلخّص ما تبقّى، بنفس ترقيم المراحل الأصلي في متطلبات المشروع.
 
 | المرحلة | النطاق | الحالة |
 |---|---|---|
@@ -10,9 +10,26 @@
 | **Phase 4** | Buyers, Sellers, Leads, Agents, Commissions | ✅ منجزة |
 | **Phase 5** | Listings, Marketing, Viewings, Sales, Offers | ✅ منجزة |
 | **Phase 6** | Maintenance, Employees, Vendors, Quotations | ✅ منجزة |
-| **Phase 7** | Auctions, Auction Integration Layer, Auction Audit | ⏭ التالية |
-| **Phase 8** | Reports, Notifications, Documents (رفع فعلي), Dashboard (إحصائيات كاملة) | ⏭ |
+| **Phase 7** | Auctions, Auction Integration Layer, Auction Audit | ✅ منجزة |
+| **Phase 8** | Reports, Notifications, Documents (رفع فعلي), Dashboard (إحصائيات كاملة) | ⏭ التالية |
 | **Phase 9** | Testing (تغطية شاملة), Security Hardening, Performance, Deployment, Documentation | جزئي (أساسيات الأمان والاختبارات موجودة، التغطية الكاملة لاحقًا) |
+
+## ما تم فعليًا في Phase 7
+
+1. **Auction (المزادات)**: كيان `Auction` (كود مرجعي `AUCT-000001`) بدورة حياة كاملة (`AuctionStatus`): `Draft → PendingApproval/Scheduled → Published → Live → Ended → Awarded → Settled`، مع إمكانية الإلغاء (`Cancelled`) من أي حالة غير نهائية. `POST /api/auctions/{id}/approve` يعتمد المزاد، `POST /api/auctions/{id}/publish` ينشره (انتقال داخلي ناجح دائمًا + مزامنة بأفضل جهد مع المنصة الخارجية — لا تفشل عملية النشر الداخلية إن تعذّر الاتصال بالمنصة، بل يُسجَّل السبب في سجل التدقيق فقط)، `POST /api/auctions/{id}/status` للانتقالات الحرة اليدوية (يمنع صراحة ضبط `Scheduled`/`Published`/`Awarded`/`Settled` مباشرة — لها أوامر مخصَّصة)، `POST /api/auctions/{id}/award` لإرساء المزاد على فائز (يرفض إن كان السعر النهائي أقل من السعر الاحتياطي، ويُولِّد عمولة تلقائيًا للمسوّق بنفس آلية تفعيل الإيجار/إتمام البيع)، و`POST /api/auctions/{id}/settle` للتسوية المالية النهائية.
+2. **AuctionAuditLog (سجل تدقيق المزاد)**: سجل **Append-Only** بحت — لا يوجد أمر تعديل أو حذف مقابل له في طبقة Application عمدًا، تحقيقًا لمتطلب "عدم السماح بتعديل سجلات المزايدة بعد تسجيلها". يُسجَّل حدث لكل تغيير حالة (اعتماد، نشر، بدء، انتهاء، إرساء، تسوية، إلغاء) ولكل حدث وارد من المنصة الخارجية عبر Webhook، بما في ذلك الحمولة الخام (`Payload`) وعنوان الشبكة المصدر (`SourceIp`). `GET /api/auctions/{id}/audit-log` يعرضه كاملًا مرتَّبًا زمنيًا.
+3. **طبقة تكامل حقيقية مع منصة مزادات مستقلة (لا Mock)**: `IAuctionPlatformClient` في Application، وتنفيذه الحقيقي `HttpAuctionPlatformClient` (HttpClient فعلي) في Infrastructure تحت `Integrations/Auctions`. إن لم تُضبَط إعدادات المنصة (`AuctionIntegration:BaseUrl`/`ApiKey`) يرمي `BusinessRuleException` واضحة بدل التظاهر بتكامل غير موجود — التزامًا بنفس مبدأ REGA/Ejar/FAL الموثَّق سابقًا. الاتجاه الوارد (Webhook) مبني وقابل للاختبار فعليًا لأن الـ ERP يتحكّم بهذا الطرف بالكامل: `AuctionWebhooksController` (مسار مستقل `/api/integrations/auctions/webhook`، غير وارث من `BaseApiController` عمدًا لتفادي تسجيل مسار مزدوج) يتحقق من سرّ مشترك (`X-Auction-Webhook-Secret` مقابل `AuctionIntegration:WebhookSecret`) بدل JWT لأن المستدعي نظام خارجي، ويطبّق فقط تحديثات معلوماتية آمنة (سعر المزايدة الحالي، عدد المزايدات، تمديد الوقت، الانتقال إلى Live/Ended) — لا قرارات مالية تلقائية؛ الإرساء والتسوية يبقيان أمرين داخليين صريحين.
+4. **الواجهة الأمامية**: صفحة قائمة حقيقية جديدة (`/auctions`) استبدلت النموذج المؤقت (ComingSoon) ببيانات حقيقية من الـ API، بنفس نمط بقية صفحات القوائم.
+
+تم التحقق من Phase 7 فعليًا بنفس منهجية المراحل السابقة: `dotnet build`/`dotnet test` (61 اختبارًا ناجحًا)، migration حقيقية (`AddAuctionsModule`) مُولَّدة ومُطبَّقة على SQL Server 2022 حقيقي (Docker)، تشغيل الـ API الفعلي واختبار دورة مزاد كاملة عبر طلبات HTTP حقيقية (إنشاء → اعتماد → نشر → Live → Ended → رفض الإرساء تحت السعر الاحتياطي (422) → إرساء صحيح مع توليد عمولة تلقائي بضريبة قيمة مضافة صحيحة → تسوية)، اختبار نقطة استقبال الـ Webhook فعليًا (رفض بلا سرّ/بسرّ خاطئ (401)، رفض معرّف مزاد خارجي غير معروف (404)، قبول حدث `BidPlaced` صحيح وتحديث السعر الحالي/عدد المزايدات في قاعدة البيانات فعليًا)، و`npm run lint`/`npm run build`، بالإضافة إلى فتح صفحة `/auctions` في متصفح Chromium حقيقي (Playwright) بعد تسجيل دخول فعلي والتحقق بصريًا من عرض بيانات المزادات الحقيقية.
+
+### إصلاح جوهري عابر لكل المراحل تم اكتشافه وإصلاحه أثناء بناء Phase 7
+
+أثناء الاختبار الحي (Live) لسير عمل المزادات، اكتُشف عيب حقيقي وخطير كان قائمًا منذ Phase 4: **`ValidationBehaviour` (وكذلك `LoggingBehaviour`) لم يكونا يُطبَّقان إطلاقًا على أي أمر بلا نتيجة (`IRequest` بلا `<TResponse>`)** — أي كل أمر من نوع اعتماد/إلغاء/تحديث حالة/إسناد في كل موديول (`AssignLeadCommand`, `UpdateAuctionStatusCommand`, `ApproveAuctionCommand`... إلخ). السبب الجذري: في MediatR 12.x لم تعد الواجهة غير المعمَّمة `IRequest` ترث `IRequest<Unit>` (خلافًا لإصدارات أقدم من المكتبة)، بينما كان القيد العام على الـ Behaviors هو `where TRequest : IRequest<TResponse>` — فيفشل DI Container صامتًا في تسجيل الـ Behavior لأي `TRequest` من هذا النوع دون أي خطأ ظاهر، فتُتخطى كل قواعد FluentValidation الخاصة بهذه الأوامر بالكامل ويصل الطلب مباشرة إلى الـ Handler حتى ببيانات غير صالحة (مثال حي تم رصده: إلغاء مزاد بلا سبب إلغاء رغم وجود قاعدة `NotEmpty()`، وإسناد عميل محتمل لمسوّق بمعرّف فارغ (`Guid.Empty`) وصل حتى استعلام قاعدة البيانات).
+
+تم تشخيص السبب الجذري بمعزل تام عن بقية النظام (مشروع Console صغير مستقل يُعيد إنتاج نفس تسجيل MediatR)، وتأكيده بالفحص عبر الانعكاس (Reflection) أن `typeof(IRequest).IsAssignableTo(typeof(IRequest<Unit>))` تُعيد `false` فعليًا في الإصدار المستخدم (`MediatR 12.4.1` / `MediatR.Contracts 2.0.1`). **الإصلاح**: تغيير القيد العام في كل من `ValidationBehaviour<TRequest,TResponse>` و`LoggingBehaviour<TRequest,TResponse>` من `where TRequest : IRequest<TResponse>` إلى `where TRequest : notnull` — وهو كافٍ تمامًا لأن القيد الفعلي المطلوب هو تحقيق واجهة `IPipelineBehavior<TRequest,TResponse>` نفسها فقط، لا علاقة وراثة إضافية بـ `IRequest<TResponse>`. تم التحقق من الإصلاح: إعادة بناء كاملة، 61 اختبارًا ناجحًا (بينها اختباران جديدان مخصَّصان `ValidationPipelineTests` يبنيان حاوية DI حقيقية بنفس `AddApplication()` الإنتاجية ويرسلان أوامر عبر `ISender.Send` فعليًا — لا استدعاء مباشر للـ Handler كبقية الاختبارات — لضمان عدم تكرار هذا العيب مستقبلًا لأي موديول)، وإعادة اختبار كل نقاط النهاية الحيّة التي كشفت العيب فعليًا للتأكد من أنها ترفض الآن البيانات غير الصالحة بخطأ 400 صحيح بدل تجاوزها أو الانهيار (500).
+
+**أثر هذا الإصلاح يشمل كل الموديولات من Phase 4 حتى Phase 7** (كل أمر `IRequest` بلا نتيجة له قواعد FluentValidation)، لا Phase 7 فقط — وهو سبب توثيقه هنا بشكل بارز رغم اكتشافه أثناء اختبار المزادات تحديدًا. اختبارات الوحدة (`Handlers/*Tests.cs`) في كل المراحل لم تكشف هذا العيب لأنها تستدعي الـ Handler مباشرة (`new XCommandHandler(...).Handle(...)`) متجاوزةً Pipeline الـ MediatR بالكامل — وهي فجوة اختبارية حقيقية تم سدّها الآن بإضافة `ValidationPipelineTests` كطبقة اختبار إضافية (وليست بديلة) تمر عبر `ISender` الفعلي.
 
 ## ما تم فعليًا في Phase 6
 
@@ -55,7 +72,7 @@
 ## نقاط تكامل مستقبلية (خارج نطاق هذا الكود، لكن العمارة تسمح بإضافتها دون إعادة كتابة الأساس)
 
 - **REGA / Ejar / FAL**: لا يوجد API رسمي عام متاح حاليًا لدمجه تلقائيًا. الحقول ذات العلاقة (`FalLicenseNumber`, `FalLicenseExpiryDate` في `Company` و`Agent`) موجودة بالفعل لتُدخَل يدويًا أو تُربط لاحقًا بمجرد توفر API رسمي، دون تغيير الـ Schema.
-- **منصة المزادات المستقلة**: طبقة تكامل مقترحة تحت `FalakAlkhair.Infrastructure/Integrations/Auctions` تنفّذ `IAuctionPlatformClient` (HTTP Client + Webhook Receiver Controller)، خلف واجهة قابلة للاستبدال — لا Mock حقيقي يُبنى إلا عند ربطه بمزوّد فعلي، تفاديًا لادّعاء تكامل غير موجود.
+- **منصة المزادات المستقلة**: طبقة التكامل مبنية فعليًا (Phase 7) تحت `FalakAlkhair.Infrastructure/Integrations/Auctions` (`IAuctionPlatformClient` + `HttpAuctionPlatformClient` + `AuctionWebhooksController`)، خلف واجهة قابلة للاستبدال. الاتجاه الصادر (نشر/إغلاق مزاد على المنصة) يرمي خطأ واضحًا حتى يُضبَط مزوّد فعلي (`BaseUrl`/`ApiKey`)؛ الاتجاه الوارد (Webhook) فعّال وقابل للاختبار الآن لأن الـ ERP يملك هذا الطرف بالكامل.
 - **WhatsApp / Email / SMS**: تُبنى كواجهات (`IWhatsAppService`, `IEmailService`, `ISmsService`) في Application، بتنفيذ Infrastructure قابل للتفعيل لاحقًا (Twilio, WhatsApp Business API ...)، مع Background Job Queue (Hangfire أو Quartz.NET) لإرسال غير متزامن.
 - **Payment Gateways / Maps / AI**: نفس المبدأ — Interfaces أولاً، تنفيذ حقيقي فقط عند اختيار مزوّد فعلي وتوفر بيانات اعتماد حقيقية. محرك مطابقة المشترين الحالي (Phase 4) قواعدي بحت (Rule-based) تحقيقًا لهذا المبدأ بالضبط.
 

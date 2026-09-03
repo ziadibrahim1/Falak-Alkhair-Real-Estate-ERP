@@ -54,6 +54,9 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser, Applicati
     public DbSet<MaintenanceQuotation> MaintenanceQuotations => Set<MaintenanceQuotation>();
     public DbSet<MaintenanceQuotationItem> MaintenanceQuotationItems => Set<MaintenanceQuotationItem>();
 
+    public DbSet<Auction> Auctions => Set<Auction>();
+    public DbSet<AuctionAuditLog> AuctionAuditLogs => Set<AuctionAuditLog>();
+
     protected override void OnModelCreating(ModelBuilder builder)
     {
         base.OnModelCreating(builder);
@@ -93,5 +96,7 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser, Applicati
         builder.Entity<Vendor>().HasQueryFilter(e => !e.IsDeleted);
         builder.Entity<MaintenanceRequest>().HasQueryFilter(e => !e.IsDeleted);
         builder.Entity<MaintenanceQuotation>().HasQueryFilter(e => !e.IsDeleted);
+        builder.Entity<Auction>().HasQueryFilter(e => !e.IsDeleted);
+        builder.Entity<AuctionAuditLog>().HasQueryFilter(e => !e.IsDeleted);
     }
 }

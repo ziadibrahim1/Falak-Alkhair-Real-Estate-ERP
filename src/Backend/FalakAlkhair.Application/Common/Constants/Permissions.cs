@@ -37,6 +37,7 @@ public static class Permissions
         public const string MaintenanceEmployee = nameof(MaintenanceEmployee);
         public const string Vendor = nameof(Vendor);
         public const string Quotation = nameof(Quotation);
+        public const string Auction = nameof(Auction);
     }
 
     public static class Actions
@@ -199,6 +200,13 @@ public static class Permissions
     public const string QuotationCreate = "Quotation.Create";
     public const string QuotationApprove = "Quotation.Approve";
 
+    // --- Auction (المزادات العقارية) ---
+    public const string AuctionView = "Auction.View";
+    public const string AuctionCreate = "Auction.Create";
+    public const string AuctionEdit = "Auction.Edit";
+    public const string AuctionApprove = "Auction.Approve";
+    public const string AuctionManage = "Auction.Manage";
+
     public static readonly IReadOnlyList<(string Code, string Module, string Action, string DescriptionAr)> All = new List<(string, string, string, string)>
     {
         (PropertyView, Modules.Property, Actions.View, "عرض العقارات"),
@@ -319,5 +327,11 @@ public static class Permissions
         (QuotationView, Modules.Quotation, Actions.View, "عرض عروض أسعار الصيانة"),
         (QuotationCreate, Modules.Quotation, Actions.Create, "تسجيل عرض سعر صيانة"),
         (QuotationApprove, Modules.Quotation, Actions.Approve, "اعتماد عرض سعر صيانة"),
+
+        (AuctionView, Modules.Auction, Actions.View, "عرض المزادات العقارية"),
+        (AuctionCreate, Modules.Auction, Actions.Create, "إنشاء مزاد عقاري"),
+        (AuctionEdit, Modules.Auction, Actions.Edit, "تعديل بيانات مزاد"),
+        (AuctionApprove, Modules.Auction, Actions.Approve, "اعتماد ونشر مزاد"),
+        (AuctionManage, Modules.Auction, Actions.Manage, "إدارة دورة حياة المزاد (إرساء/تسوية/إلغاء)"),
     };
 }

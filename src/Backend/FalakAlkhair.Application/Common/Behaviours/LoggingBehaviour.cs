@@ -4,9 +4,13 @@ using Microsoft.Extensions.Logging;
 
 namespace FalakAlkhair.Application.Common.Behaviours;
 
-/// <summary>يسجّل كل Command/Query عبر Structured Logging مع اسم المستخدم والشركة والمدة الزمنية.</summary>
+/// <summary>
+/// يسجّل كل Command/Query عبر Structured Logging مع اسم المستخدم والشركة والمدة الزمنية.
+/// القيد "notnull" (وليس IRequest&lt;TResponse&gt;) لنفس السبب الموثَّق في
+/// ValidationBehaviour: يضمن تسجيل هذا الـ Behavior فعليًا للأوامر بلا نتيجة (IRequest) أيضًا.
+/// </summary>
 public class LoggingBehaviour<TRequest, TResponse> : IPipelineBehavior<TRequest, TResponse>
-    where TRequest : IRequest<TResponse>
+    where TRequest : notnull
 {
     private readonly ILogger<LoggingBehaviour<TRequest, TResponse>> _logger;
     private readonly ICurrentUserService _currentUserService;

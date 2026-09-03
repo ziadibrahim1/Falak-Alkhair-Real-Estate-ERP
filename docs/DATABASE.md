@@ -1,6 +1,8 @@
-# مخطط قاعدة البيانات — حتى نهاية Phase 6
+# مخطط قاعدة البيانات — حتى نهاية Phase 7
 
-قاعدة البيانات: **SQL Server**. هذا المستند يغطي الجداول المبنية فعليًا حتى Phase 6 (Properties/Units/Owners، Tenants/Leases/Payments، Agents/Buyers/Sellers/Leads/Commissions، Listings/MarketingCampaigns/Viewings/Offers/Sales، MaintenanceRequests/MaintenanceEmployees/Vendors/MaintenanceQuotations). جداول المراحل القادمة (Auctions ...) موثّقة في [ROADMAP.md](./ROADMAP.md) وليست جزءًا من هذا الـ Schema بعد.
+قاعدة البيانات: **SQL Server**. هذا المستند يغطي الجداول المبنية فعليًا حتى Phase 7 (Properties/Units/Owners، Tenants/Leases/Payments، Agents/Buyers/Sellers/Leads/Commissions، Listings/MarketingCampaigns/Viewings/Offers/Sales، MaintenanceRequests/MaintenanceEmployees/Vendors/MaintenanceQuotations، Auctions/AuctionAuditLogs). جداول المراحل القادمة (Notifications، Reports المخصَّصة ...) موثّقة في [ROADMAP.md](./ROADMAP.md) وليست جزءًا من هذا الـ Schema بعد.
+
+جداول Phase 7 الإضافية: `Auction` (PropertyId, UnitId?, OwnerId, SellerId?, AgentId?, StartDate, EndDate, StartingPrice, ReservePrice?, DepositAmount?, CommissionPercentage, Status, WinnerBuyerId?, FinalPrice?, ExternalAuctionId?, CurrentBidAmount?, BidsCount)، `AuctionAuditLog` (AuctionId, EventType, Payload?, SourceIp?, OccurredAt — سجل Append-Only بلا أمر تعديل/حذف مقابل). `Commission` اكتسبت عمود `AuctionId` (nullable) إضافةً إلى `LeaseId`/`SaleId` الموجودين — عمولة المزاد تُولَّد تلقائيًا عند الإرساء (`AwardAuctionCommand`) بنفس آلية تفعيل الإيجار/إتمام البيع. كل هذه الكيانات ترث `BaseAuditableEntity`.
 
 جداول Phase 6 الإضافية: `MaintenanceEmployee`، `Vendor`، `MaintenanceRequest` (PropertyId, UnitId, TenantId?, RequestType, Priority, Status, AssignedEmployeeId?, AssignedVendorId?)، `MaintenanceQuotation` + `MaintenanceQuotationItem` (بند بكمية وسعر وحدة، المجموع محسوب من الخادم). كل هذه الكيانات ترث `BaseAuditableEntity` عدا `MaintenanceQuotationItem` (كيان بسيط `BaseEntity` بلا Soft Delete، يتبع دورة حياة `MaintenanceQuotation` الأب).
 
@@ -32,12 +34,20 @@ erDiagram
 
     Agent ||--o{ Commission : "يستحق"
     Lease ||--o{ Commission : "يولّد"
+    Sale ||--o{ Commission : "يولّد"
+    Auction ||--o{ Commission : "يولّد"
     Agent ||--o{ Buyer : "مسؤول عن"
     Agent ||--o{ Seller : "مسؤول عن"
     Agent ||--o{ Lead : "مسؤول عن"
     Owner ||--o{ Seller : "طرف في"
     Property ||--o{ Seller : "موضوع"
     Property ||--o{ Lead : "مهتم بـ"
+
+    Property ||--o{ Auction : "موضوع"
+    Owner ||--o{ Auction : "طرف في"
+    Agent ||--o{ Auction : "يدير"
+    Buyer ||--o{ Auction : "يفوز بـ"
+    Auction ||--o{ AuctionAuditLog : "سجل تدقيق"
 
     Company ||--o{ Owner : "نطاق"
     Company ||--o{ Property : "نطاق"
@@ -279,6 +289,8 @@ erDiagram
         guid AgentId FK
         string SourceType
         guid LeaseId FK "nullable"
+        guid SaleId FK "nullable"
+        guid AuctionId FK "nullable"
         decimal BaseAmount
         decimal CommissionPercentage
         decimal CommissionAmount
@@ -287,12 +299,46 @@ erDiagram
         string Status
         guid CompanyId FK
     }
+
+    Auction {
+        guid Id PK
+        string AuctionNumber UK
+        guid PropertyId FK
+        guid UnitId FK "nullable"
+        guid OwnerId FK
+        guid SellerId FK "nullable"
+        guid AgentId FK "nullable"
+        datetime StartDate
+        datetime EndDate
+        decimal StartingPrice
+        decimal ReservePrice "nullable"
+        decimal DepositAmount "nullable"
+        decimal CommissionPercentage
+        string Status
+        guid WinnerBuyerId FK "nullable"
+        decimal FinalPrice "nullable"
+        string ExternalAuctionId "nullable"
+        decimal CurrentBidAmount "nullable"
+        int BidsCount
+        guid CompanyId FK
+    }
+
+    AuctionAuditLog {
+        guid Id PK
+        guid AuctionId FK
+        string EventType
+        string Payload "nullable"
+        string SourceIp "nullable"
+        datetime OccurredAt
+        guid CompanyId FK
+    }
 ```
 
 ## ملاحظات تصميمية مهمة
 
-- **Soft Delete**: كل الكيانات التي ترث `BaseAuditableEntity` (`Owner`, `Property`, `Unit`, `PropertyManagementAgreement`, `Document`, `Tenant`, `Lease`, `LeasePayment`, `Payment`, `Agent`, `Buyer`, `Seller`, `Lead`, `Commission`) تحمل `IsDeleted` + `DeletedAt` + `DeletedBy`، مع Global Query Filter في EF Core يستبعدها تلقائيًا من كل الاستعلامات. لا يوجد حذف فعلي (`DELETE`) لأي سجل عمل.
-- **عمولات المسوّقين تلقائية**: `Commission` لا تُنشأ يدويًا في المسار الطبيعي — تُولَّد تلقائيًا عند تفعيل `Lease` له `AgentId` ونسبة عمولة > صفر (راجع `ActivateLeaseCommand` وROADMAP.md، Phase 4). `POST /api/commissions` مخصص فقط لحالات استثنائية يدوية.
+- **Soft Delete**: كل الكيانات التي ترث `BaseAuditableEntity` (`Owner`, `Property`, `Unit`, `PropertyManagementAgreement`, `Document`, `Tenant`, `Lease`, `LeasePayment`, `Payment`, `Agent`, `Buyer`, `Seller`, `Lead`, `Commission`, `Listing`, `MarketingCampaign`, `Viewing`, `Offer`, `Sale`, `MaintenanceEmployee`, `Vendor`, `MaintenanceRequest`, `MaintenanceQuotation`, `Auction`, `AuctionAuditLog`) تحمل `IsDeleted` + `DeletedAt` + `DeletedBy`، مع Global Query Filter في EF Core يستبعدها تلقائيًا من كل الاستعلامات. لا يوجد حذف فعلي (`DELETE`) لأي سجل عمل.
+- **عمولات المسوّقين تلقائية**: `Commission` لا تُنشأ يدويًا في المسار الطبيعي — تُولَّد تلقائيًا عند تفعيل `Lease` له `AgentId` ونسبة عمولة > صفر (راجع `ActivateLeaseCommand`)، أو عند إتمام `Sale` (`UpdateSaleStageCommand` → `Completed`)، أو عند إرساء `Auction` (`AwardAuctionCommand` → `Awarded`) — راجع ROADMAP.md لتفاصيل كل مرحلة. `POST /api/commissions` مخصص فقط لحالات استثنائية يدوية.
+- **AuctionAuditLog سجل Append-Only حقيقي**: لا يوجد أمر تعديل أو حذف له في طبقة Application عمدًا (خلافًا لبقية الكيانات القابلة للحذف الناعم) — تحقيقًا لمتطلب عدم السماح بتعديل سجلات المزايدة بعد تسجيلها. يُسجَّل صف جديد فيه عند كل تغيّر حالة للمزاد وعند كل حدث Webhook وارد من منصة المزادات الخارجية.
 - **مزامنة عدّادات الترقيم مع بيانات البذر (Seed)**: أي كيان يُزرَع ببيانات تطويرية بكود ثابت (`Owner.OwnerCode = "OWNER-000001"` مثلًا) يجب أن يُسجَّل أيضًا في `EnsureNumberSequenceSeededAsync` بنهاية `ApplicationDbContextSeed.SeedAsync`، وإلا فسيصطدم أول طلب فعلي عبر الـ API لنفس النوع بقيد التفرّد (Unique Index) — هذا خطأ تم اكتشافه وإصلاحه فعليًا أثناء بناء Phase 4 (راجع ROADMAP.md).
 - **الفهرسة (Indexes)**: فهارس فريدة مركّبة على `(CompanyId, Code)` لكل الجداول ذات الترقيم المرجعي، وفهارس على الحقول المستخدمة في البحث/الفلترة (الحالة، المدينة، رقم الجوال، رقم الصك، التواريخ) تحقيقًا لمتطلب الأداء تحت آلاف السجلات.
 - **الدقة المالية**: كل الحقول المالية (`decimal`) بدقة `(18,2)` لتفادي أخطاء التقريب.
@@ -306,8 +352,11 @@ erDiagram
 1. `InitialCreate` — Phase 1/2 (Companies, Branches, Identity, Permissions, Owners, Properties, Units, PropertyManagementAgreement).
 2. `AddTenantsLeasesPayments` — Phase 3 (Tenants, Leases, LeasePayments, Payments).
 3. `AddAgentsBuyersSellersLeadsCommissions` — Phase 4 (Agents, Buyers, Sellers, Leads, Commissions, وإضافة `Lease.AgentId`).
+4. `AddListingsMarketingViewingsOffersSales` — Phase 5 (Listings, MarketingCampaigns, Viewings, Offers, Sales، وإضافة `Lead.CampaignId`/`Commission.SaleId`).
+5. `AddMaintenanceModule` — Phase 6 (MaintenanceEmployees, Vendors, MaintenanceRequests, MaintenanceQuotations, MaintenanceQuotationItems).
+6. `AddAuctionsModule` — Phase 7 (Auctions, AuctionAuditLogs، وإضافة `Commission.AuctionId`).
 
-كل migration من الثلاثة أعلاه **طُبِّق فعليًا** على SQL Server 2022 حقيقي (Docker) وتم التحقق من عمل النظام الكامل (Seed، تسجيل الدخول، CRUD عبر كل Endpoint) قبل رفعه — وليس كودًا مكتوبًا يدويًا بلا اختبار.
+كل migration من الستّة أعلاه **طُبِّق فعليًا** على SQL Server 2022 حقيقي (Docker) وتم التحقق من عمل النظام الكامل (Seed، تسجيل الدخول، CRUD عبر كل Endpoint) قبل رفعه — وليس كودًا مكتوبًا يدويًا بلا اختبار.
 
 عند إضافة كيانات جديدة مستقبلًا، نفّذ من `src/Backend` بعد `dotnet restore`:
 

@@ -2,23 +2,24 @@
 
 نظام ERP عقاري لإدارة الأملاك والوساطة العقارية، مصمم لشركة فلك الخير العقارية في السوق السعودي.
 
-> **حالة المشروع:** حتى نهاية Phase 6 (راجع [docs/ARCHITECTURE.md](./docs/ARCHITECTURE.md#10-الموديولات-المبنية-في-هذا-الإصدار)) — Production-ready للنطاق المبني فعليًا، وليس نموذجًا تجريبيًا: مصادقة وتفويض حقيقيان، سجل تدقيق تلقائي، عمليات فعلية على SQL Server. بقية الموديولات (المزادات، Reports/Notifications الكاملة ...) موثّقة كخطة تنفيذ واضحة في [docs/ROADMAP.md](./docs/ROADMAP.md) ولم تُبنَ بعد — لا يوجد أي ادّعاء بخلاف ذلك.
+> **حالة المشروع:** حتى نهاية Phase 7 (راجع [docs/ARCHITECTURE.md](./docs/ARCHITECTURE.md#10-الموديولات-المبنية-في-هذا-الإصدار)) — Production-ready للنطاق المبني فعليًا، وليس نموذجًا تجريبيًا: مصادقة وتفويض حقيقيان، سجل تدقيق تلقائي، عمليات فعلية على SQL Server. بقية الموديولات (لوحة تحكم بإحصائيات كاملة، الإشعارات، Reports الكاملة ...) موثّقة كخطة تنفيذ واضحة في [docs/ROADMAP.md](./docs/ROADMAP.md) ولم تُبنَ بعد — لا يوجد أي ادّعاء بخلاف ذلك.
 
 ## المستندات
 
 - [docs/ARCHITECTURE.md](./docs/ARCHITECTURE.md) — العمارة، Tech Stack، الأمان، RBAC، Audit Log.
 - [docs/DATABASE.md](./docs/DATABASE.md) — ERD وتفاصيل الجداول وحالة الـ Migrations.
-- [docs/ROADMAP.md](./docs/ROADMAP.md) — خطة المراحل القادمة (Phase 7 → 9).
+- [docs/ROADMAP.md](./docs/ROADMAP.md) — خطة المراحل القادمة (Phase 8 → 9).
 
 ## ✅ حالة التحقق الفعلي (Build/Test/Run)
 
-على عكس الإصدارات التأسيسية الأولى (حيث لم تتوفر بيئة بها .NET SDK أو Docker)، تم في جلسات بناء Phase 4 و5 و6 تنفيذ كل ما يلي **فعليًا، لا نظريًا**، لكل مرحلة على حدة:
+على عكس الإصدارات التأسيسية الأولى (حيث لم تتوفر بيئة بها .NET SDK أو Docker)، تم في جلسات بناء Phase 4 إلى 7 تنفيذ كل ما يلي **فعليًا، لا نظريًا**، لكل مرحلة على حدة:
 
 - `dotnet restore && dotnet build` على الحل الكامل (5 مشاريع) — نجح بلا أخطاء ولا تحذيرات.
-- `dotnet test` — **38 اختبارًا ناجحًا** (FluentValidation validators، Handlers، منطق توليد العمولات التلقائي، محرك مطابقة المشترين، منع نشر إعلان ناقص، منع الرجوع في مسار المبيعات، اعتماد عرض سعر صيانة يرفض المنافسين تلقائيًا، حساب بنود عرض السعر من الخادم).
+- `dotnet test` — **61 اختبارًا ناجحًا** (FluentValidation validators، Handlers، منطق توليد العمولات التلقائي (إيجار/بيع/مزاد)، محرك مطابقة المشترين، منع نشر إعلان ناقص، منع الرجوع في مسار المبيعات/المزادات، اعتماد عرض سعر صيانة يرفض المنافسين تلقائيًا، معالجة أحداث Webhook المزادات، واختبارا Pipeline حقيقي يمر عبر `ISender` الفعلي وليس استدعاء Handler مباشرًا).
 - توليد migration حقيقي (`dotnet ef migrations add`) وتطبيقه فعليًا على **SQL Server 2022 حقيقي عبر Docker** (`dotnet ef database update`) — قاعدة بيانات كاملة بكل الجداول والفهارس والعلاقات، وليس ملفًا نظريًا لم يُختبر.
-- تشغيل الـ API الفعلي (`dotnet run`) مع تفعيل الـ Seed، تسجيل دخول حقيقي عبر JWT، وتنفيذ طلبات CRUD حقيقية على كل Endpoint جديد في Phase 4 و5 و6 — بما فيها اكتشاف وإصلاح خطأ حقيقي في `NumberGeneratorService` كان سيمنع أول عملية إنشاء فعلية لأي كيان (راجع docs/ROADMAP.md)، التحقق من مسار البيع الكامل (إعلان → معاينة → عرض → بيع مكتمل → عمولة مولَّدة تلقائيًا)، ودورة صيانة كاملة (إنشاء → إسناد → عرض سعر محسوب من الخادم → اعتماد يرفض المنافسين تلقائيًا → إكمال) — كلها عبر طلبات HTTP حقيقية.
-- `npm install && npm run lint && npm run build` على الواجهة الأمامية (58 صفحة، مسارين لغويين) — نجح بلا أخطاء.
+- تشغيل الـ API الفعلي (`dotnet run`) مع تفعيل الـ Seed، تسجيل دخول حقيقي عبر JWT، وتنفيذ طلبات CRUD حقيقية على كل Endpoint جديد — بما فيها اكتشاف وإصلاح خطأ حقيقي في `NumberGeneratorService` (Phase 4) كان سيمنع أول عملية إنشاء فعلية لأي كيان، التحقق من مسار البيع الكامل (إعلان → معاينة → عرض → بيع مكتمل → عمولة مولَّدة تلقائيًا)، دورة صيانة كاملة (إنشاء → إسناد → عرض سعر محسوب من الخادم → اعتماد يرفض المنافسين تلقائيًا → إكمال)، ودورة مزاد كاملة (إنشاء → اعتماد → نشر → Live → Ended → إرساء يرفض السعر تحت الاحتياطي → عمولة تلقائية بضريبة صحيحة → تسوية) بما فيها اختبار نقطة استقبال Webhook المزادات فعليًا (سرّ مشترك، رفض معرّف غير معروف، تحديث فعلي لقاعدة البيانات) — كلها عبر طلبات HTTP حقيقية.
+- **اكتشاف وإصلاح خطأ جوهري عابر لكل المراحل (Phase 7)**: `ValidationBehaviour`/`LoggingBehaviour` لم يكونا يُطبَّقان إطلاقًا على أي أمر بلا نتيجة إرجاع (`IRequest`) في أي موديول منذ Phase 4، بسبب اختلاف سلوك MediatR 12.x عن الإصدارات الأقدم (`IRequest` لم تعد ترث `IRequest<Unit>`). تم تشخيصه بمعزل عن النظام، إصلاحه، وسدّ الفجوة الاختبارية التي أخفته (راجع docs/ROADMAP.md، قسم "إصلاح جوهري عابر لكل المراحل").
+- `npm install && npm run lint && npm run build` على الواجهة الأمامية (58 صفحة، مسارين لغويين) — نجح بلا أخطاء، وتم فتح صفحة `/auctions` فعليًا في متصفح Chromium حقيقي (Playwright) بعد تسجيل دخول والتحقق البصري من البيانات.
 
 بيئة تنفيذ لاحقة قد لا تملك دائمًا وصولًا لـ .NET SDK/Docker بنفس السهولة؛ إن حدث ذلك مستقبلًا، ستُوثَّق أي قيود بنفس الصراحة كما في الإصدارات الأولى بدل الادّعاء بخلاف الواقع.
 
@@ -61,7 +62,7 @@ dotnet tool install --global dotnet-ef
 
 # 4. تطبيق الـ Migrations الموجودة بالفعل في المستودع (InitialCreate → AddTenantsLeasesPayments
 #    → AddAgentsBuyersSellersLeadsCommissions → AddListingsMarketingViewingsOffersSales →
-#    AddMaintenanceModule) — لا حاجة لإنشاء migration جديد إلا عند إضافة كيانات جديدة فعليًا.
+#    AddMaintenanceModule → AddAuctionsModule) — لا حاجة لإنشاء migration جديد إلا عند إضافة كيانات جديدة فعليًا.
 #    dotnet run أدناه يطبّقها تلقائيًا في بيئة Development، أو نفّذها يدويًا:
 dotnet ef database update \
   --project FalakAlkhair.Infrastructure \
@@ -108,7 +109,7 @@ cd src/Backend
 dotnet test
 ```
 
-38 اختبارًا ناجحًا (تم التحقق فعليًا). تُغطّي الاختبارات الحالية: FluentValidation validators، منطق Workflow اعتماد عقود إدارة الأملاك، محرك مطابقة المشترين بالعقارات، توليد عمولة المسوّق تلقائيًا (إيجار/بيع)، منع نشر إعلان عقاري ناقص البيانات، منع الرجوع لمرحلة سابقة في مسار المبيعات، اعتماد عرض سعر صيانة (يرفض العروض المنافسة تلقائيًا ويحدّث الطلب)، ومنع ضبط حالة "معتمد" لطلب صيانة يدويًا — كلها عبر EF Core InMemory.
+61 اختبارًا ناجحًا (تم التحقق فعليًا). تُغطّي الاختبارات الحالية: FluentValidation validators، منطق Workflow اعتماد عقود إدارة الأملاك، محرك مطابقة المشترين بالعقارات، توليد عمولة المسوّق تلقائيًا (إيجار/بيع/مزاد)، منع نشر إعلان عقاري ناقص البيانات، منع الرجوع لمرحلة سابقة في مسار المبيعات/المزادات، اعتماد عرض سعر صيانة (يرفض العروض المنافسة تلقائيًا ويحدّث الطلب)، منع ضبط حالة "معتمد" لطلب صيانة يدويًا، معالجة أحداث Webhook مزاد وارد (تحديث آمن + رفض حدث غير معروف) — معظمها عبر EF Core InMemory، بالإضافة إلى اختبارَي Pipeline (`ValidationPipelineTests`) يمرّان فعليًا عبر حاوية DI و`ISender` الحقيقيَّين للتأكد أن FluentValidation تُطبَّق على كل أمر (بما فيها الأوامر بلا نتيجة إرجاع).
 
 ```bash
 cd src/Frontend
@@ -244,6 +245,16 @@ GET    /api/maintenancequotations              [Permission: Quotation.View]
 POST   /api/maintenancequotations              [Permission: Quotation.Create]  (يحسب الإجمالي من البنود على الخادم)
 POST   /api/maintenancequotations/{id}/approve [Permission: Quotation.Approve]  (يرفض العروض المنافسة تلقائيًا)
 
+GET    /api/auctions                   [Permission: Auction.View]
+GET    /api/auctions/{id}/audit-log    [Permission: Auction.View]  (سجل تدقيق كامل، للقراءة فقط)
+POST   /api/auctions                   [Permission: Auction.Create]
+POST   /api/auctions/{id}/approve      [Permission: Auction.Approve]  (Draft/PendingApproval → Scheduled)
+POST   /api/auctions/{id}/publish      [Permission: Auction.Approve]  (Scheduled → Published + مزامنة بأفضل جهد مع المنصة الخارجية)
+POST   /api/auctions/{id}/status       [Permission: Auction.Manage]  (انتقالات حرة يدوية + الإلغاء؛ يمنع ضبط Scheduled/Published/Awarded/Settled مباشرة)
+POST   /api/auctions/{id}/award        [Permission: Auction.Manage]  (Ended → Awarded؛ يرفض سعرًا أقل من الاحتياطي؛ يولّد عمولة تلقائيًا)
+POST   /api/auctions/{id}/settle       [Permission: Auction.Manage]  (Awarded → Settled)
+POST   /api/integrations/auctions/webhook  [بلا JWT — سرّ مشترك X-Auction-Webhook-Secret]  (نقطة استقبال أحداث منصة المزادات الخارجية)
+
 GET    /api/roles                      [Permission: Role.View]
 POST   /api/roles                      [Permission: Role.Manage]
 GET    /api/roles/permissions          [Permission: Role.View]
@@ -253,7 +264,7 @@ GET    /api/roles/permissions          [Permission: Role.View]
 
 ## 7) خارطة التكامل المستقبلية
 
-راجع [docs/ROADMAP.md](./docs/ROADMAP.md) لتفاصيل: منصة المزادات المستقلة (Integration Layer + Webhooks)، REGA/Ejar/FAL (لا تكامل تلقائي بلا API رسمي متاح)، WhatsApp/Email/SMS (Interfaces جاهزة للتفعيل لاحقًا)، بوابات الملاك/المستأجرين/المسوقين.
+راجع [docs/ROADMAP.md](./docs/ROADMAP.md) لتفاصيل: REGA/Ejar/FAL (لا تكامل تلقائي بلا API رسمي متاح)، WhatsApp/Email/SMS (Interfaces جاهزة للتفعيل لاحقًا)، بوابات الملاك/المستأجرين/المسوقين. تكامل منصة المزادات المستقلة (Integration Layer + Webhooks) مبني فعليًا الآن — راجع القسم أعلاه.
 
 ## الترخيص والملكية
 

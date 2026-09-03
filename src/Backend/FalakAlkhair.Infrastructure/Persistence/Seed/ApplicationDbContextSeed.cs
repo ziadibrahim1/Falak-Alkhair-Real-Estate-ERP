@@ -663,11 +663,95 @@ public static class ApplicationDbContextSeed
             await context.SaveChangesAsync();
         }
 
-        // 12) مزامنة عدّادات الترقيم المرجعي (NumberSequences) مع الأكواد المزروعة يدويًا
+        // 12) بيانات تجريبية لموديول Phase 7 (Auctions) — مزاد كامل من الإنشاء وحتى
+        // التسوية المالية، مع سجل تدقيق (Append-Only) يغطي كل مرحلة، وعمولة تلقائية
+        // للمسوّق عند الإرساء بنفس فلسفة عقد الإيجار والبيع أعلاه.
+        if (sampleOwner is not null && !await context.Auctions.AnyAsync(a => a.CompanyId == company.Id))
+        {
+            var auctionProperty = new Property
+            {
+                CompanyId = company.Id,
+                BranchId = mainBranch.Id,
+                PropertyCode = "PROP-000003",
+                PropertyName = "أرض تجارية - طريق الملك فهد",
+                PropertyType = PropertyType.Land,
+                PropertyCategory = PropertyCategory.Commercial,
+                Status = PropertyStatus.Active,
+                OwnerId = sampleOwner.Id,
+                City = "الرياض",
+                District = "العليا",
+                TotalArea = 2500
+            };
+            context.Properties.Add(auctionProperty);
+            await context.SaveChangesAsync();
+
+            const decimal auctionFinalPrice = 2_300_000m;
+            const decimal auctionCommissionAmount = auctionFinalPrice * 2 / 100m; // 46,000
+            const decimal auctionVatAmount = auctionCommissionAmount * 15 / 100m; // 6,900
+
+            var auctionStart = DateTime.UtcNow.AddDays(-30);
+            var auctionEnd = DateTime.UtcNow.AddDays(-23);
+
+            var auction = new Auction
+            {
+                CompanyId = company.Id,
+                BranchId = mainBranch.Id,
+                AuctionNumber = "AUCT-000001",
+                PropertyId = auctionProperty.Id,
+                OwnerId = sampleOwner.Id,
+                AgentId = sampleAgent.Id,
+                StartDate = auctionStart,
+                EndDate = auctionEnd,
+                StartingPrice = 2_000_000,
+                ReservePrice = 2_100_000,
+                DepositAmount = 100_000,
+                CommissionPercentage = 2,
+                VatPercentage = 15,
+                Status = AuctionStatus.Settled,
+                WinnerBuyerId = sampleBuyer.Id,
+                FinalPrice = auctionFinalPrice,
+                CurrentBidAmount = auctionFinalPrice,
+                BidsCount = 12,
+                SettledAt = auctionEnd.AddDays(3),
+                Notes = "مزاد علني لأرض تجارية على طريق الملك فهد."
+            };
+
+            auction.AuditLogs.Add(new AuctionAuditLog { CompanyId = company.Id, BranchId = mainBranch.Id, EventType = AuctionEventType.AuctionCreated, OccurredAt = auctionStart.AddDays(-5), Notes = "تم إنشاء المزاد كمسودة." });
+            auction.AuditLogs.Add(new AuctionAuditLog { CompanyId = company.Id, BranchId = mainBranch.Id, EventType = AuctionEventType.AuctionApproved, OccurredAt = auctionStart.AddDays(-3), Notes = "تم اعتماد المزاد." });
+            auction.AuditLogs.Add(new AuctionAuditLog { CompanyId = company.Id, BranchId = mainBranch.Id, EventType = AuctionEventType.AuctionPublished, OccurredAt = auctionStart.AddDays(-1), Notes = "تم نشر المزاد." });
+            auction.AuditLogs.Add(new AuctionAuditLog { CompanyId = company.Id, BranchId = mainBranch.Id, EventType = AuctionEventType.AuctionWentLive, OccurredAt = auctionStart, Notes = "بدأ المزاد فعليًا." });
+            auction.AuditLogs.Add(new AuctionAuditLog { CompanyId = company.Id, BranchId = mainBranch.Id, EventType = AuctionEventType.AuctionEnded, OccurredAt = auctionEnd, Notes = "انتهى وقت المزايدة." });
+            auction.AuditLogs.Add(new AuctionAuditLog { CompanyId = company.Id, BranchId = mainBranch.Id, EventType = AuctionEventType.AuctionAwarded, OccurredAt = auctionEnd.AddHours(2), Notes = $"أُرسي المزاد بسعر نهائي {auctionFinalPrice:N2}." });
+            auction.AuditLogs.Add(new AuctionAuditLog { CompanyId = company.Id, BranchId = mainBranch.Id, EventType = AuctionEventType.AuctionSettled, OccurredAt = auctionEnd.AddDays(3), Notes = "تمت التسوية المالية النهائية." });
+
+            context.Auctions.Add(auction);
+            await context.SaveChangesAsync();
+
+            context.Commissions.Add(new Commission
+            {
+                CompanyId = company.Id,
+                BranchId = mainBranch.Id,
+                CommissionNumber = "COMM-000003",
+                AgentId = sampleAgent.Id,
+                SourceType = CommissionSourceType.Auction,
+                AuctionId = auction.Id,
+                BaseAmount = auctionFinalPrice,
+                CommissionPercentage = 2,
+                CommissionAmount = auctionCommissionAmount,
+                VatPercentage = 15,
+                VatAmount = auctionVatAmount,
+                NetCommissionAmount = auctionCommissionAmount + auctionVatAmount,
+                Status = CommissionStatus.Pending
+            });
+
+            await context.SaveChangesAsync();
+        }
+
+        // 13) مزامنة عدّادات الترقيم المرجعي (NumberSequences) مع الأكواد المزروعة يدويًا
         // أعلاه (مثال: "LEAD-000001"). بيانات البذر تُدرَج مباشرة بأكواد ثابتة دون المرور
         // بـ NumberGeneratorService، فإن لم تُزامَن العدّادات هنا، أول طلب فعلي عبر الـ API
         // لنفس النوع يولّد نفس الكود المستخدم مسبقًا فيصطدم بقيد التفرّد (Unique Index).
-        await EnsureNumberSequenceSeededAsync(context, company.Id, "PROPERTY", "PROP", 2);
+        await EnsureNumberSequenceSeededAsync(context, company.Id, "PROPERTY", "PROP", 3);
         await EnsureNumberSequenceSeededAsync(context, company.Id, "UNIT", "UNIT", 2);
         await EnsureNumberSequenceSeededAsync(context, company.Id, "OWNER", "OWNER", 1);
         await EnsureNumberSequenceSeededAsync(context, company.Id, "TEN", "TEN", 1);
@@ -676,7 +760,7 @@ public static class ApplicationDbContextSeed
         await EnsureNumberSequenceSeededAsync(context, company.Id, "AGENT", "AGENT", 1);
         await EnsureNumberSequenceSeededAsync(context, company.Id, "BUYER", "BUYER", 1);
         await EnsureNumberSequenceSeededAsync(context, company.Id, "LEAD", "LEAD", 1);
-        await EnsureNumberSequenceSeededAsync(context, company.Id, "COMM", "COMM", 2);
+        await EnsureNumberSequenceSeededAsync(context, company.Id, "COMM", "COMM", 3);
         await EnsureNumberSequenceSeededAsync(context, company.Id, "SELLER", "SELLER", 1);
         await EnsureNumberSequenceSeededAsync(context, company.Id, "LIST", "LIST", 1);
         await EnsureNumberSequenceSeededAsync(context, company.Id, "CAMP", "CAMP", 1);
@@ -687,6 +771,7 @@ public static class ApplicationDbContextSeed
         await EnsureNumberSequenceSeededAsync(context, company.Id, "VEND", "VEND", 2);
         await EnsureNumberSequenceSeededAsync(context, company.Id, "MAINT", "MAINT", 1);
         await EnsureNumberSequenceSeededAsync(context, company.Id, "QUOT", "QUOT", 2);
+        await EnsureNumberSequenceSeededAsync(context, company.Id, "AUCT", "AUCT", 1);
         await context.SaveChangesAsync();
     }
 

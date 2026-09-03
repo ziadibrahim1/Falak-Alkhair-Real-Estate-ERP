@@ -364,3 +364,40 @@ export interface MaintenanceQuotationDto {
   status: number;
   items: MaintenanceQuotationItemDto[];
 }
+
+export interface AuctionDto {
+  id: string;
+  auctionNumber: string;
+  propertyId: string;
+  propertyName: string;
+  unitId?: string;
+  unitNumber?: string;
+  ownerId: string;
+  ownerNameAr: string;
+  agentId?: string;
+  agentNameAr?: string;
+  startDate: string;
+  endDate: string;
+  startingPrice: number;
+  reservePrice?: number;
+  depositAmount?: number;
+  commissionPercentage: number;
+  status: number;
+  winnerBuyerId?: string;
+  winnerBuyerNameAr?: string;
+  finalPrice?: number;
+  externalAuctionId?: string;
+  currentBidAmount?: number;
+  bidsCount: number;
+  notes?: string;
+  createdAt: string;
+}
+
+export interface AuctionAuditLogDto {
+  id: string;
+  eventType: number;
+  notes?: string;
+  sourceIp?: string;
+  occurredAt: string;
+  createdBy?: string;
+}

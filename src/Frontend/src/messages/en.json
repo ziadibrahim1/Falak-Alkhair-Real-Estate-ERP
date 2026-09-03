@@ -271,5 +271,19 @@
     "total": "Total",
     "status": "Status",
     "addNew": "Record New Quotation"
+  },
+  "auctions": {
+    "title": "Auctions",
+    "number": "Auction Number",
+    "property": "Property",
+    "unit": "Unit",
+    "agent": "Auction Manager",
+    "startDate": "Start Date",
+    "endDate": "End Date",
+    "startingPrice": "Starting Price",
+    "currentBid": "Current Highest Bid",
+    "finalPrice": "Final Price",
+    "status": "Status",
+    "addNew": "Create New Auction"
   }
 }
