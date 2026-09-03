@@ -48,6 +48,12 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser, Applicati
     public DbSet<Offer> Offers => Set<Offer>();
     public DbSet<Sale> Sales => Set<Sale>();
 
+    public DbSet<MaintenanceEmployee> MaintenanceEmployees => Set<MaintenanceEmployee>();
+    public DbSet<Vendor> Vendors => Set<Vendor>();
+    public DbSet<MaintenanceRequest> MaintenanceRequests => Set<MaintenanceRequest>();
+    public DbSet<MaintenanceQuotation> MaintenanceQuotations => Set<MaintenanceQuotation>();
+    public DbSet<MaintenanceQuotationItem> MaintenanceQuotationItems => Set<MaintenanceQuotationItem>();
+
     protected override void OnModelCreating(ModelBuilder builder)
     {
         base.OnModelCreating(builder);
@@ -83,5 +89,9 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser, Applicati
         builder.Entity<Viewing>().HasQueryFilter(e => !e.IsDeleted);
         builder.Entity<Offer>().HasQueryFilter(e => !e.IsDeleted);
         builder.Entity<Sale>().HasQueryFilter(e => !e.IsDeleted);
+        builder.Entity<MaintenanceEmployee>().HasQueryFilter(e => !e.IsDeleted);
+        builder.Entity<Vendor>().HasQueryFilter(e => !e.IsDeleted);
+        builder.Entity<MaintenanceRequest>().HasQueryFilter(e => !e.IsDeleted);
+        builder.Entity<MaintenanceQuotation>().HasQueryFilter(e => !e.IsDeleted);
     }
 }

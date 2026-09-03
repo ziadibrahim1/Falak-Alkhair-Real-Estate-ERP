@@ -35,7 +35,10 @@ public class NumberGeneratorService : INumberGeneratorService
         ["LIST"] = "LIST",
         ["CAMP"] = "CAMP",
         ["VIEW"] = "VIEW",
-        ["OFFER"] = "OFFER"
+        ["OFFER"] = "OFFER",
+        ["EMP"] = "EMP",
+        ["VEND"] = "VEND",
+        ["QUOT"] = "QUOT"
     };
 
     private readonly ApplicationDbContext _context;

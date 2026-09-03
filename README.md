@@ -2,23 +2,23 @@
 
 نظام ERP عقاري لإدارة الأملاك والوساطة العقارية، مصمم لشركة فلك الخير العقارية في السوق السعودي.
 
-> **حالة المشروع:** حتى نهاية Phase 5 (راجع [docs/ARCHITECTURE.md](./docs/ARCHITECTURE.md#10-الموديولات-المبنية-في-هذا-الإصدار)) — Production-ready للنطاق المبني فعليًا، وليس نموذجًا تجريبيًا: مصادقة وتفويض حقيقيان، سجل تدقيق تلقائي، عمليات فعلية على SQL Server. بقية الموديولات (الصيانة، المزادات ...) موثّقة كخطة تنفيذ واضحة في [docs/ROADMAP.md](./docs/ROADMAP.md) ولم تُبنَ بعد — لا يوجد أي ادّعاء بخلاف ذلك.
+> **حالة المشروع:** حتى نهاية Phase 6 (راجع [docs/ARCHITECTURE.md](./docs/ARCHITECTURE.md#10-الموديولات-المبنية-في-هذا-الإصدار)) — Production-ready للنطاق المبني فعليًا، وليس نموذجًا تجريبيًا: مصادقة وتفويض حقيقيان، سجل تدقيق تلقائي، عمليات فعلية على SQL Server. بقية الموديولات (المزادات، Reports/Notifications الكاملة ...) موثّقة كخطة تنفيذ واضحة في [docs/ROADMAP.md](./docs/ROADMAP.md) ولم تُبنَ بعد — لا يوجد أي ادّعاء بخلاف ذلك.
 
 ## المستندات
 
 - [docs/ARCHITECTURE.md](./docs/ARCHITECTURE.md) — العمارة، Tech Stack، الأمان، RBAC، Audit Log.
 - [docs/DATABASE.md](./docs/DATABASE.md) — ERD وتفاصيل الجداول وحالة الـ Migrations.
-- [docs/ROADMAP.md](./docs/ROADMAP.md) — خطة المراحل القادمة (Phase 6 → 9).
+- [docs/ROADMAP.md](./docs/ROADMAP.md) — خطة المراحل القادمة (Phase 7 → 9).
 
 ## ✅ حالة التحقق الفعلي (Build/Test/Run)
 
-على عكس الإصدارات التأسيسية الأولى (حيث لم تتوفر بيئة بها .NET SDK أو Docker)، تم في جلسات بناء Phase 4 و5 تنفيذ كل ما يلي **فعليًا، لا نظريًا**، لكل مرحلة على حدة:
+على عكس الإصدارات التأسيسية الأولى (حيث لم تتوفر بيئة بها .NET SDK أو Docker)، تم في جلسات بناء Phase 4 و5 و6 تنفيذ كل ما يلي **فعليًا، لا نظريًا**، لكل مرحلة على حدة:
 
 - `dotnet restore && dotnet build` على الحل الكامل (5 مشاريع) — نجح بلا أخطاء ولا تحذيرات.
-- `dotnet test` — **34 اختبارًا ناجحًا** (FluentValidation validators، Handlers، منطق توليد العمولات التلقائي لعقود الإيجار والمبيعات، محرك مطابقة المشترين، منع نشر إعلان ناقص، منع الرجوع في مسار المبيعات).
+- `dotnet test` — **38 اختبارًا ناجحًا** (FluentValidation validators، Handlers، منطق توليد العمولات التلقائي، محرك مطابقة المشترين، منع نشر إعلان ناقص، منع الرجوع في مسار المبيعات، اعتماد عرض سعر صيانة يرفض المنافسين تلقائيًا، حساب بنود عرض السعر من الخادم).
 - توليد migration حقيقي (`dotnet ef migrations add`) وتطبيقه فعليًا على **SQL Server 2022 حقيقي عبر Docker** (`dotnet ef database update`) — قاعدة بيانات كاملة بكل الجداول والفهارس والعلاقات، وليس ملفًا نظريًا لم يُختبر.
-- تشغيل الـ API الفعلي (`dotnet run`) مع تفعيل الـ Seed، تسجيل دخول حقيقي عبر JWT، وتنفيذ طلبات CRUD حقيقية على كل Endpoint جديد في Phase 4 و5 — بما فيها اكتشاف وإصلاح خطأ حقيقي في `NumberGeneratorService` كان سيمنع أول عملية إنشاء فعلية لأي كيان (راجع docs/ROADMAP.md)، والتحقق من مسار البيع الكامل (إعلان → معاينة → عرض → بيع مكتمل → عمولة مولَّدة تلقائيًا) عبر طلبات HTTP حقيقية.
-- `npm install && npm run lint && npm run build` على الواجهة الأمامية (52 صفحة، مسارين لغويين) — نجح بلا أخطاء.
+- تشغيل الـ API الفعلي (`dotnet run`) مع تفعيل الـ Seed، تسجيل دخول حقيقي عبر JWT، وتنفيذ طلبات CRUD حقيقية على كل Endpoint جديد في Phase 4 و5 و6 — بما فيها اكتشاف وإصلاح خطأ حقيقي في `NumberGeneratorService` كان سيمنع أول عملية إنشاء فعلية لأي كيان (راجع docs/ROADMAP.md)، التحقق من مسار البيع الكامل (إعلان → معاينة → عرض → بيع مكتمل → عمولة مولَّدة تلقائيًا)، ودورة صيانة كاملة (إنشاء → إسناد → عرض سعر محسوب من الخادم → اعتماد يرفض المنافسين تلقائيًا → إكمال) — كلها عبر طلبات HTTP حقيقية.
+- `npm install && npm run lint && npm run build` على الواجهة الأمامية (58 صفحة، مسارين لغويين) — نجح بلا أخطاء.
 
 بيئة تنفيذ لاحقة قد لا تملك دائمًا وصولًا لـ .NET SDK/Docker بنفس السهولة؛ إن حدث ذلك مستقبلًا، ستُوثَّق أي قيود بنفس الصراحة كما في الإصدارات الأولى بدل الادّعاء بخلاف الواقع.
 
@@ -60,9 +60,9 @@ cd ..
 dotnet tool install --global dotnet-ef
 
 # 4. تطبيق الـ Migrations الموجودة بالفعل في المستودع (InitialCreate → AddTenantsLeasesPayments
-#    → AddAgentsBuyersSellersLeadsCommissions → AddListingsMarketingViewingsOffersSales) — لا حاجة
-#    لإنشاء migration جديد إلا عند إضافة كيانات جديدة فعليًا. dotnet run أدناه يطبّقها تلقائيًا في
-#    بيئة Development، أو نفّذها يدويًا:
+#    → AddAgentsBuyersSellersLeadsCommissions → AddListingsMarketingViewingsOffersSales →
+#    AddMaintenanceModule) — لا حاجة لإنشاء migration جديد إلا عند إضافة كيانات جديدة فعليًا.
+#    dotnet run أدناه يطبّقها تلقائيًا في بيئة Development، أو نفّذها يدويًا:
 dotnet ef database update \
   --project FalakAlkhair.Infrastructure \
   --startup-project FalakAlkhair.API
@@ -108,7 +108,7 @@ cd src/Backend
 dotnet test
 ```
 
-34 اختبارًا ناجحًا (تم التحقق فعليًا). تُغطّي الاختبارات الحالية: FluentValidation validators (الملاك، العقارات، المسوّقين، المبيعات)، منطق Workflow اعتماد عقود إدارة الأملاك، محرك مطابقة المشترين بالعقارات، توليد عمولة المسوّق تلقائيًا عند تفعيل عقد الإيجار وعند إتمام معاملة بيع، منع نشر إعلان عقاري ناقص البيانات، ومنع الرجوع لمرحلة سابقة في مسار المبيعات — كلها عبر EF Core InMemory.
+38 اختبارًا ناجحًا (تم التحقق فعليًا). تُغطّي الاختبارات الحالية: FluentValidation validators، منطق Workflow اعتماد عقود إدارة الأملاك، محرك مطابقة المشترين بالعقارات، توليد عمولة المسوّق تلقائيًا (إيجار/بيع)، منع نشر إعلان عقاري ناقص البيانات، منع الرجوع لمرحلة سابقة في مسار المبيعات، اعتماد عرض سعر صيانة (يرفض العروض المنافسة تلقائيًا ويحدّث الطلب)، ومنع ضبط حالة "معتمد" لطلب صيانة يدويًا — كلها عبر EF Core InMemory.
 
 ```bash
 cd src/Frontend
@@ -223,6 +223,26 @@ POST   /api/offers/{id}/status         [Permission: Offer.Edit]
 GET    /api/sales                      [Permission: Sale.View]
 POST   /api/sales                      [Permission: Sale.Create]
 POST   /api/sales/{id}/stage           [Permission: Sale.Manage]  (يمنع الرجوع لمرحلة سابقة؛ يولّد عمولة عند Completed)
+
+GET    /api/maintenancerequests               [Permission: MaintenanceRequest.View]
+POST   /api/maintenancerequests               [Permission: MaintenanceRequest.Create]
+POST   /api/maintenancerequests/{id}/assign   [Permission: MaintenanceRequest.Assign]
+POST   /api/maintenancerequests/{id}/status   [Permission: MaintenanceRequest.Edit]  (لا يسمح بضبط Approved يدويًا)
+DELETE /api/maintenancerequests/{id}          [Permission: MaintenanceRequest.Delete]
+
+GET    /api/maintenanceemployees       [Permission: MaintenanceEmployee.View]
+POST   /api/maintenanceemployees       [Permission: MaintenanceEmployee.Create]
+PUT    /api/maintenanceemployees/{id}  [Permission: MaintenanceEmployee.Edit]
+DELETE /api/maintenanceemployees/{id}  [Permission: MaintenanceEmployee.Delete]
+
+GET    /api/vendors                    [Permission: Vendor.View]
+POST   /api/vendors                    [Permission: Vendor.Create]
+PUT    /api/vendors/{id}               [Permission: Vendor.Edit]
+DELETE /api/vendors/{id}               [Permission: Vendor.Delete]
+
+GET    /api/maintenancequotations              [Permission: Quotation.View]
+POST   /api/maintenancequotations              [Permission: Quotation.Create]  (يحسب الإجمالي من البنود على الخادم)
+POST   /api/maintenancequotations/{id}/approve [Permission: Quotation.Approve]  (يرفض العروض المنافسة تلقائيًا)
 
 GET    /api/roles                      [Permission: Role.View]
 POST   /api/roles                      [Permission: Role.Manage]

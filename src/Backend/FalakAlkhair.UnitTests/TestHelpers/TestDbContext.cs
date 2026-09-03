@@ -45,6 +45,12 @@ public class TestDbContext : DbContext, IApplicationDbContext
     public DbSet<Offer> Offers => Set<Offer>();
     public DbSet<Sale> Sales => Set<Sale>();
 
+    public DbSet<MaintenanceEmployee> MaintenanceEmployees => Set<MaintenanceEmployee>();
+    public DbSet<Vendor> Vendors => Set<Vendor>();
+    public DbSet<MaintenanceRequest> MaintenanceRequests => Set<MaintenanceRequest>();
+    public DbSet<MaintenanceQuotation> MaintenanceQuotations => Set<MaintenanceQuotation>();
+    public DbSet<MaintenanceQuotationItem> MaintenanceQuotationItems => Set<MaintenanceQuotationItem>();
+
     public static TestDbContext Create()
     {
         var options = new DbContextOptionsBuilder<TestDbContext>()

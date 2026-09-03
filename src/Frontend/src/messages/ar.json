@@ -49,7 +49,10 @@
     "viewings": "المعاينات",
     "offers": "عروض الشراء",
     "sales": "المبيعات",
-    "maintenance": "الصيانة",
+    "maintenance": "طلبات الصيانة",
+    "maintenanceEmployees": "فنيو الصيانة",
+    "vendors": "موردو الصيانة",
+    "quotations": "عروض أسعار الصيانة",
     "marketing": "التسويق",
     "auctions": "المزادات",
     "documents": "المستندات",
@@ -227,5 +230,46 @@
     "finalPrice": "السعر النهائي",
     "stage": "المرحلة",
     "addNew": "إنشاء معاملة بيع جديدة"
+  },
+  "maintenance": {
+    "title": "طلبات الصيانة",
+    "number": "رقم الطلب",
+    "property": "العقار",
+    "unit": "الوحدة",
+    "priority": "الأولوية",
+    "employee": "الفني المسؤول",
+    "vendor": "المورّد المسؤول",
+    "estimatedCost": "التكلفة التقديرية",
+    "status": "الحالة",
+    "addNew": "إنشاء طلب صيانة جديد"
+  },
+  "maintenanceEmployees": {
+    "title": "فنيو الصيانة",
+    "code": "كود الفني",
+    "name": "الاسم",
+    "mobile": "الجوال",
+    "department": "القسم",
+    "assignedRequestsCount": "الطلبات المسندة",
+    "isAvailable": "متاح",
+    "addNew": "إضافة فني جديد"
+  },
+  "vendors": {
+    "title": "موردو الصيانة",
+    "code": "كود المورّد",
+    "name": "الاسم",
+    "contactPerson": "مسؤول التواصل",
+    "mobile": "الجوال",
+    "rating": "التقييم",
+    "assignedRequestsCount": "الطلبات المسندة",
+    "addNew": "إضافة مورّد جديد"
+  },
+  "quotations": {
+    "title": "عروض أسعار الصيانة",
+    "number": "رقم العرض",
+    "request": "طلب الصيانة",
+    "vendor": "المورّد",
+    "total": "الإجمالي",
+    "status": "الحالة",
+    "addNew": "تسجيل عرض سعر جديد"
   }
 }

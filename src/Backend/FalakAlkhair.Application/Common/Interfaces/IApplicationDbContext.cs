@@ -41,5 +41,11 @@ public interface IApplicationDbContext
     DbSet<Offer> Offers { get; }
     DbSet<Sale> Sales { get; }
 
+    DbSet<MaintenanceEmployee> MaintenanceEmployees { get; }
+    DbSet<Vendor> Vendors { get; }
+    DbSet<MaintenanceRequest> MaintenanceRequests { get; }
+    DbSet<MaintenanceQuotation> MaintenanceQuotations { get; }
+    DbSet<MaintenanceQuotationItem> MaintenanceQuotationItems { get; }
+
     Task<int> SaveChangesAsync(CancellationToken cancellationToken);
 }

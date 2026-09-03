@@ -120,7 +120,11 @@ Infrastructure (FalakAlkhair.Infrastructure) — تنفّذ عقود Application
 | المعاينات (Viewings) | ✅ CRUD + `/complete` | ✅ قائمة + بحث/تصفّح |
 | عروض الشراء (Offers) | ✅ CRUD + `/status` | ✅ قائمة + بحث/تصفّح |
 | المبيعات (Sales) — مسار كامل + عمولة تلقائية | ✅ CRUD + `/stage` | ✅ قائمة + بحث/تصفّح |
+| طلبات الصيانة (Maintenance) — دورة عمل كاملة | ✅ CRUD + `/assign` + `/status` | ✅ قائمة + بحث/تصفّح |
+| فنيو الصيانة (Maintenance Employees) | ✅ CRUD كامل | ✅ قائمة + بحث/تصفّح |
+| موردو الصيانة (Vendors) | ✅ CRUD كامل | ✅ قائمة + بحث/تصفّح |
+| عروض أسعار الصيانة (Quotations) — بنود + حساب تلقائي + اعتماد | ✅ CRUD + `/approve` | ✅ قائمة + بحث/تصفّح |
 | المستندات (Document) | ✅ كيان + جدول جاهز | — (رفع الملفات لاحقًا) |
 | المرجّعات المركزية (Number Generator) | ✅ (متزامن مع بيانات البذر) | — |
 
-بقية الموديولات (Maintenance, Auctions, Reports/Notifications الكاملة ...) موثّقة كخطة تنفيذ في [ROADMAP.md](./ROADMAP.md) ولم تُبنَ بعد.
+بقية الموديولات (Auctions, Reports/Notifications الكاملة ...) موثّقة كخطة تنفيذ في [ROADMAP.md](./ROADMAP.md) ولم تُبنَ بعد.

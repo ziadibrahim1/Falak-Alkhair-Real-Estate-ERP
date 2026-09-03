@@ -33,6 +33,10 @@ public static class Permissions
         public const string Viewing = nameof(Viewing);
         public const string Offer = nameof(Offer);
         public const string Sale = nameof(Sale);
+        public const string MaintenanceRequest = nameof(MaintenanceRequest);
+        public const string MaintenanceEmployee = nameof(MaintenanceEmployee);
+        public const string Vendor = nameof(Vendor);
+        public const string Quotation = nameof(Quotation);
     }
 
     public static class Actions
@@ -171,6 +175,30 @@ public static class Permissions
     public const string SaleEdit = "Sale.Edit";
     public const string SaleManage = "Sale.Manage";
 
+    // --- MaintenanceRequest (طلبات الصيانة) ---
+    public const string MaintenanceRequestView = "MaintenanceRequest.View";
+    public const string MaintenanceRequestCreate = "MaintenanceRequest.Create";
+    public const string MaintenanceRequestEdit = "MaintenanceRequest.Edit";
+    public const string MaintenanceRequestDelete = "MaintenanceRequest.Delete";
+    public const string MaintenanceRequestAssign = "MaintenanceRequest.Assign";
+
+    // --- MaintenanceEmployee (فنيو الصيانة) ---
+    public const string MaintenanceEmployeeView = "MaintenanceEmployee.View";
+    public const string MaintenanceEmployeeCreate = "MaintenanceEmployee.Create";
+    public const string MaintenanceEmployeeEdit = "MaintenanceEmployee.Edit";
+    public const string MaintenanceEmployeeDelete = "MaintenanceEmployee.Delete";
+
+    // --- Vendor (موردو/شركات الصيانة) ---
+    public const string VendorView = "Vendor.View";
+    public const string VendorCreate = "Vendor.Create";
+    public const string VendorEdit = "Vendor.Edit";
+    public const string VendorDelete = "Vendor.Delete";
+
+    // --- Quotation (عروض أسعار الصيانة) ---
+    public const string QuotationView = "Quotation.View";
+    public const string QuotationCreate = "Quotation.Create";
+    public const string QuotationApprove = "Quotation.Approve";
+
     public static readonly IReadOnlyList<(string Code, string Module, string Action, string DescriptionAr)> All = new List<(string, string, string, string)>
     {
         (PropertyView, Modules.Property, Actions.View, "عرض العقارات"),
@@ -271,5 +299,25 @@ public static class Permissions
         (SaleCreate, Modules.Sale, Actions.Create, "إنشاء معاملة بيع"),
         (SaleEdit, Modules.Sale, Actions.Edit, "تعديل معاملة بيع"),
         (SaleManage, Modules.Sale, Actions.Manage, "إدارة مسار معاملة البيع (تغيير المرحلة)"),
+
+        (MaintenanceRequestView, Modules.MaintenanceRequest, Actions.View, "عرض طلبات الصيانة"),
+        (MaintenanceRequestCreate, Modules.MaintenanceRequest, Actions.Create, "إنشاء طلب صيانة"),
+        (MaintenanceRequestEdit, Modules.MaintenanceRequest, Actions.Edit, "تحديث حالة طلب صيانة"),
+        (MaintenanceRequestDelete, Modules.MaintenanceRequest, Actions.Delete, "حذف طلب صيانة"),
+        (MaintenanceRequestAssign, Modules.MaintenanceRequest, Actions.Assign, "إسناد طلب صيانة لفني/مورّد"),
+
+        (MaintenanceEmployeeView, Modules.MaintenanceEmployee, Actions.View, "عرض فنيي الصيانة"),
+        (MaintenanceEmployeeCreate, Modules.MaintenanceEmployee, Actions.Create, "إضافة فني صيانة"),
+        (MaintenanceEmployeeEdit, Modules.MaintenanceEmployee, Actions.Edit, "تعديل فني صيانة"),
+        (MaintenanceEmployeeDelete, Modules.MaintenanceEmployee, Actions.Delete, "حذف فني صيانة"),
+
+        (VendorView, Modules.Vendor, Actions.View, "عرض موردي/شركات الصيانة"),
+        (VendorCreate, Modules.Vendor, Actions.Create, "إضافة مورّد صيانة"),
+        (VendorEdit, Modules.Vendor, Actions.Edit, "تعديل مورّد صيانة"),
+        (VendorDelete, Modules.Vendor, Actions.Delete, "حذف مورّد صيانة"),
+
+        (QuotationView, Modules.Quotation, Actions.View, "عرض عروض أسعار الصيانة"),
+        (QuotationCreate, Modules.Quotation, Actions.Create, "تسجيل عرض سعر صيانة"),
+        (QuotationApprove, Modules.Quotation, Actions.Approve, "اعتماد عرض سعر صيانة"),
     };
 }

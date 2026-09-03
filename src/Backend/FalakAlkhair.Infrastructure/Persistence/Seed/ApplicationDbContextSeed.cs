@@ -553,7 +553,117 @@ public static class ApplicationDbContextSeed
             await context.SaveChangesAsync();
         }
 
-        // 11) مزامنة عدّادات الترقيم المرجعي (NumberSequences) مع الأكواد المزروعة يدويًا
+        // 11) بيانات تجريبية لموديولات Phase 6 (Maintenance/Employees/Vendors/Quotations) —
+        // تغطي دورة عمل طلب صيانة كاملة: إنشاء → إسناد → عروض أسعار متعددة → اعتماد أحدها
+        // (مع رفض الآخر تلقائيًا) → اكتمال، على العقار/الوحدة التجريبيين في الخطوة 5.
+        if (sampleProperty is not null && sampleUnit is not null && !await context.Vendors.AnyAsync(v => v.CompanyId == company.Id))
+        {
+            var employee = new MaintenanceEmployee
+            {
+                CompanyId = company.Id,
+                BranchId = mainBranch.Id,
+                EmployeeCode = "EMP-000001",
+                NameAr = "سلطان بن فهد المطيري",
+                Mobile = "0533333333",
+                Department = "الصيانة الكهربائية والتكييف",
+                Skills = "كهرباء، تكييف مركزي",
+                IsAvailable = true,
+                IsActive = true
+            };
+            context.MaintenanceEmployees.Add(employee);
+
+            var vendorApproved = new Vendor
+            {
+                CompanyId = company.Id,
+                BranchId = mainBranch.Id,
+                VendorCode = "VEND-000001",
+                NameAr = "مؤسسة الصيانة المتكاملة",
+                ContactPerson = "ماجد العنزي",
+                Mobile = "0544444444",
+                CommercialRegistrationNumber = "1010999999",
+                VatNumber = "300999999900003",
+                Services = "صيانة كهربائية وسباكة وتكييف",
+                Rating = 4.5m,
+                IsActive = true
+            };
+            var vendorRejected = new Vendor
+            {
+                CompanyId = company.Id,
+                BranchId = mainBranch.Id,
+                VendorCode = "VEND-000002",
+                NameAr = "شركة الخليج للصيانة الفنية",
+                ContactPerson = "ياسر الحربي",
+                Mobile = "0555111111",
+                Services = "صيانة عامة",
+                Rating = 3.8m,
+                IsActive = true
+            };
+            context.Vendors.AddRange(vendorApproved, vendorRejected);
+            await context.SaveChangesAsync();
+
+            var maintenanceRequest = new MaintenanceRequest
+            {
+                CompanyId = company.Id,
+                BranchId = mainBranch.Id,
+                RequestNumber = "MAINT-000001",
+                PropertyId = sampleProperty.Id,
+                UnitId = sampleUnit.Id,
+                OwnerId = sampleOwner.Id,
+                RequestType = MaintenanceRequestType.AC,
+                Priority = MaintenancePriority.High,
+                Description = "تسريب مياه من وحدة التكييف الداخلية في غرفة المعيشة.",
+                AssignedEmployeeId = employee.Id,
+                AssignedVendorId = vendorApproved.Id,
+                EstimatedCost = 575,
+                Status = MaintenanceStatus.Approved
+            };
+            context.MaintenanceRequests.Add(maintenanceRequest);
+            await context.SaveChangesAsync();
+
+            var approvedQuotation = new MaintenanceQuotation
+            {
+                CompanyId = company.Id,
+                BranchId = mainBranch.Id,
+                QuotationNumber = "QUOT-000001",
+                VendorId = vendorApproved.Id,
+                MaintenanceRequestId = maintenanceRequest.Id,
+                ValidUntil = DateTime.UtcNow.AddDays(15),
+                VatPercentage = 15,
+                SubtotalAmount = 500,
+                VatAmount = 75,
+                TotalAmount = 575,
+                Status = QuotationStatus.Approved,
+                Items =
+                {
+                    new MaintenanceQuotationItem { Description = "قطعة غيار كمبروسر", Quantity = 1, UnitPrice = 300, LineTotal = 300 },
+                    new MaintenanceQuotationItem { Description = "أجرة فني (ساعتان)", Quantity = 2, UnitPrice = 100, LineTotal = 200 }
+                }
+            };
+            var rejectedQuotation = new MaintenanceQuotation
+            {
+                CompanyId = company.Id,
+                BranchId = mainBranch.Id,
+                QuotationNumber = "QUOT-000002",
+                VendorId = vendorRejected.Id,
+                MaintenanceRequestId = maintenanceRequest.Id,
+                ValidUntil = DateTime.UtcNow.AddDays(10),
+                VatPercentage = 15,
+                SubtotalAmount = 650,
+                VatAmount = 97.5m,
+                TotalAmount = 747.5m,
+                Status = QuotationStatus.Rejected,
+                Items =
+                {
+                    new MaintenanceQuotationItem { Description = "قطعة غيار كمبروسر (بديل)", Quantity = 1, UnitPrice = 450, LineTotal = 450 },
+                    new MaintenanceQuotationItem { Description = "أجرة فني (ساعتان)", Quantity = 2, UnitPrice = 100, LineTotal = 200 }
+                }
+            };
+            context.MaintenanceQuotations.AddRange(approvedQuotation, rejectedQuotation);
+
+            await context.SaveChangesAsync();
+        }
+
+        // 12) مزامنة عدّادات الترقيم المرجعي (NumberSequences) مع الأكواد المزروعة يدويًا
         // أعلاه (مثال: "LEAD-000001"). بيانات البذر تُدرَج مباشرة بأكواد ثابتة دون المرور
         // بـ NumberGeneratorService، فإن لم تُزامَن العدّادات هنا، أول طلب فعلي عبر الـ API
         // لنفس النوع يولّد نفس الكود المستخدم مسبقًا فيصطدم بقيد التفرّد (Unique Index).
@@ -573,6 +683,10 @@ public static class ApplicationDbContextSeed
         await EnsureNumberSequenceSeededAsync(context, company.Id, "VIEW", "VIEW", 1);
         await EnsureNumberSequenceSeededAsync(context, company.Id, "OFFER", "OFFER", 1);
         await EnsureNumberSequenceSeededAsync(context, company.Id, "SALE", "SALE", 1);
+        await EnsureNumberSequenceSeededAsync(context, company.Id, "EMP", "EMP", 1);
+        await EnsureNumberSequenceSeededAsync(context, company.Id, "VEND", "VEND", 2);
+        await EnsureNumberSequenceSeededAsync(context, company.Id, "MAINT", "MAINT", 1);
+        await EnsureNumberSequenceSeededAsync(context, company.Id, "QUOT", "QUOT", 2);
         await context.SaveChangesAsync();
     }
 

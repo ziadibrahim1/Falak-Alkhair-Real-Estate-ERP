@@ -298,3 +298,69 @@ export interface SaleDto {
   stage: number;
   completedAt?: string;
 }
+
+export interface MaintenanceEmployeeDto {
+  id: string;
+  employeeCode: string;
+  nameAr: string;
+  mobile: string;
+  department?: string;
+  skills?: string;
+  isAvailable: boolean;
+  isActive: boolean;
+  assignedRequestsCount: number;
+}
+
+export interface VendorDto {
+  id: string;
+  vendorCode: string;
+  nameAr: string;
+  contactPerson?: string;
+  mobile: string;
+  services?: string;
+  rating?: number;
+  isActive: boolean;
+  assignedRequestsCount: number;
+}
+
+export interface MaintenanceRequestDto {
+  id: string;
+  requestNumber: string;
+  propertyId: string;
+  propertyName: string;
+  unitId: string;
+  unitNumber: string;
+  requestType: number;
+  priority: number;
+  description: string;
+  assignedEmployeeId?: string;
+  assignedEmployeeNameAr?: string;
+  assignedVendorId?: string;
+  assignedVendorNameAr?: string;
+  estimatedCost?: number;
+  actualCost?: number;
+  status: number;
+}
+
+export interface MaintenanceQuotationItemDto {
+  id: string;
+  description: string;
+  quantity: number;
+  unitPrice: number;
+  lineTotal: number;
+}
+
+export interface MaintenanceQuotationDto {
+  id: string;
+  quotationNumber: string;
+  vendorId: string;
+  vendorNameAr: string;
+  maintenanceRequestId: string;
+  maintenanceRequestNumber: string;
+  validUntil?: string;
+  subtotalAmount: number;
+  vatAmount: number;
+  totalAmount: number;
+  status: number;
+  items: MaintenanceQuotationItemDto[];
+}

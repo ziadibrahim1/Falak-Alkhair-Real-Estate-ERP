@@ -1,6 +1,6 @@
 # خارطة الطريق — المراحل القادمة
 
-هذا الإصدار غطّى **PHASE 1** إلى **PHASE 5** بالكامل. الجدول أدناه يلخّص ما تبقّى، بنفس ترقيم المراحل الأصلي في متطلبات المشروع.
+هذا الإصدار غطّى **PHASE 1** إلى **PHASE 6** بالكامل. الجدول أدناه يلخّص ما تبقّى، بنفس ترقيم المراحل الأصلي في متطلبات المشروع.
 
 | المرحلة | النطاق | الحالة |
 |---|---|---|
@@ -9,10 +9,22 @@
 | **Phase 3** | Tenants, Leases, Payments, Receivables, Owner Statements | ✅ منجزة (عدا لوحة Overdue في الواجهة الأمامية — الـ API جاهز) |
 | **Phase 4** | Buyers, Sellers, Leads, Agents, Commissions | ✅ منجزة |
 | **Phase 5** | Listings, Marketing, Viewings, Sales, Offers | ✅ منجزة |
-| **Phase 6** | Maintenance, Employees, Vendors, Quotations | ⏭ التالية |
-| **Phase 7** | Auctions, Auction Integration Layer, Auction Audit | ⏭ |
+| **Phase 6** | Maintenance, Employees, Vendors, Quotations | ✅ منجزة |
+| **Phase 7** | Auctions, Auction Integration Layer, Auction Audit | ⏭ التالية |
 | **Phase 8** | Reports, Notifications, Documents (رفع فعلي), Dashboard (إحصائيات كاملة) | ⏭ |
 | **Phase 9** | Testing (تغطية شاملة), Security Hardening, Performance, Deployment, Documentation | جزئي (أساسيات الأمان والاختبارات موجودة، التغطية الكاملة لاحقًا) |
+
+## ما تم فعليًا في Phase 6
+
+1. **MaintenanceRequest (طلبات الصيانة)**: دورة عمل كاملة حقيقية (`MaintenanceStatus`): `New → Assigned → Inspection → Quotation → WaitingApproval → Approved → InProgress → WaitingParts → Completed/Cancelled`. `POST /api/maintenancerequests/{id}/assign` يسند فنيًا داخليًا و/أو مورّدًا خارجيًا (New→Assigned). `POST /api/maintenancerequests/{id}/status` يمنع القفز للأمام بترتيب خاطئ، **ويمنع تحديدًا** ضبط الحالة "Approved" يدويًا (لا تتحقق إلا عبر اعتماد عرض سعر)، ويسجّل `StartDate`/`CompletionDate` تلقائيًا.
+2. **MaintenanceEmployee (فنيو الصيانة)**: CRUD كامل + حماية من حذف فني لديه طلبات مسندة غير مكتملة.
+3. **Vendor (موردو/شركات الصيانة)**: CRUD كامل بتقييم (Rating) وبيانات سجل تجاري/ضريبي.
+4. **MaintenanceQuotation (عروض أسعار الصيانة)**: يدعم بنودًا متعددة (`MaintenanceQuotationItem`: كمية × سعر وحدة) مع حساب **حقيقي من الخادم** للمجموع الفرعي وضريبة القيمة المضافة والإجمالي (وليس إدخالًا يدويًا قابلاً للتلاعب). يدعم تعدُّد العروض على نفس الطلب للمقارنة فعليًا. `POST /api/maintenancequotations/{id}/approve` يرفض تلقائيًا بقية العروض المعلَّقة على نفس الطلب، ويحدّث طلب الصيانة (التكلفة التقديرية، المورّد المسند، الحالة → Approved) — بنفس فلسفة توليد العمولة التلقائي في تفعيل الإيجار/إتمام البيع.
+5. **الواجهة الأمامية**: أربع صفحات قوائم جديدة (`/maintenance` — استبدلت ComingSoon، `/maintenance-employees`, `/vendors`, `/quotations`).
+
+تم التحقق من Phase 6 فعليًا: `dotnet build`/`dotnet test` (38 اختبارًا ناجحًا)، migration حقيقية (`AddMaintenanceModule`) مُولَّدة ومُطبَّقة على SQL Server 2022 حقيقي (Docker)، وتشغيل الـ API الفعلي لاختبار دورة صيانة كاملة عبر طلبات HTTP حقيقية: إنشاء طلب → إسناد → تسجيل عرض سعر (تحقّق من حساب الخادم للمجموع/الضريبة/الإجمالي) → اعتماد (تحقّق من رفض العرض المنافس تلقائيًا وتحديث الطلب) → رفض ضبط "Approved" يدويًا (422 كما هو مصمَّم) → InProgress → Completed (تحقّق من `CompletionDate`/`ActualCost`)، بالإضافة إلى `npm run lint`/`npm run build` (58 صفحة).
+
+ملاحظة فنية: EF Core يُصدر تحذيرًا (Warning غير حاجب) بأن `MaintenanceQuotationItem` (كيان بسيط بلا Soft Delete) تابع لكيان أب (`MaintenanceQuotation`) يحمل Query Filter — هذا متوقَّع ومقبول لأنه لا يوجد أمر حذف لعروض الأسعار حاليًا؛ إن أُضيف مستقبلًا يجب معالجته بحذف تسلسلي (Cascade) صريح بدل الحذف الناعم لعروض الأسعار المرفوضة/القديمة.
 
 ## ما تم فعليًا في Phase 5
 

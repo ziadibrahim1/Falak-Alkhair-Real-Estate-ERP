@@ -49,7 +49,10 @@
     "viewings": "Viewings",
     "offers": "Offers",
     "sales": "Sales",
-    "maintenance": "Maintenance",
+    "maintenance": "Maintenance Requests",
+    "maintenanceEmployees": "Maintenance Technicians",
+    "vendors": "Maintenance Vendors",
+    "quotations": "Maintenance Quotations",
     "marketing": "Marketing",
     "auctions": "Auctions",
     "documents": "Documents",
@@ -227,5 +230,46 @@
     "finalPrice": "Final Price",
     "stage": "Stage",
     "addNew": "Create New Sale"
+  },
+  "maintenance": {
+    "title": "Maintenance Requests",
+    "number": "Request Number",
+    "property": "Property",
+    "unit": "Unit",
+    "priority": "Priority",
+    "employee": "Assigned Technician",
+    "vendor": "Assigned Vendor",
+    "estimatedCost": "Estimated Cost",
+    "status": "Status",
+    "addNew": "Create New Request"
+  },
+  "maintenanceEmployees": {
+    "title": "Maintenance Technicians",
+    "code": "Employee Code",
+    "name": "Name",
+    "mobile": "Mobile",
+    "department": "Department",
+    "assignedRequestsCount": "Assigned Requests",
+    "isAvailable": "Available",
+    "addNew": "Add New Technician"
+  },
+  "vendors": {
+    "title": "Maintenance Vendors",
+    "code": "Vendor Code",
+    "name": "Name",
+    "contactPerson": "Contact Person",
+    "mobile": "Mobile",
+    "rating": "Rating",
+    "assignedRequestsCount": "Assigned Requests",
+    "addNew": "Add New Vendor"
+  },
+  "quotations": {
+    "title": "Maintenance Quotations",
+    "number": "Quotation Number",
+    "request": "Maintenance Request",
+    "vendor": "Vendor",
+    "total": "Total",
+    "status": "Status",
+    "addNew": "Record New Quotation"
   }
 }
