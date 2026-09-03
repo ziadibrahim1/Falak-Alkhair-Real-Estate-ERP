@@ -1,6 +1,7 @@
 using FalakAlkhair.Application.Common.Exceptions;
 using FalakAlkhair.Application.Common.Interfaces;
 using FalakAlkhair.Domain.Common.Enums;
+using FalakAlkhair.Domain.Entities;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 
@@ -9,6 +10,8 @@ namespace FalakAlkhair.Application.Leases.Commands.ActivateLease;
 /// <summary>
 /// تفعيل عقد الإيجار: Draft/PendingApproval → Active. يُحدّث حالة الوحدة
 /// تلقائيًا إلى "مؤجرة" (Rented) كأثر جانبي حقيقي على حالة المخزون العقاري.
+/// إن كان للعقد مسوّق عقاري (AgentId) ونسبة عمولة أكبر من صفر، تُولَّد
+/// عمولة (Commission) تلقائيًا وفق CommissionPercentage المسجّلة على العقد.
 /// </summary>
 public record ActivateLeaseCommand(Guid Id) : IRequest;
 
@@ -16,11 +19,13 @@ public class ActivateLeaseCommandHandler : IRequestHandler<ActivateLeaseCommand>
 {
     private readonly IApplicationDbContext _context;
     private readonly ICurrentUserService _currentUser;
+    private readonly INumberGeneratorService _numberGenerator;
 
-    public ActivateLeaseCommandHandler(IApplicationDbContext context, ICurrentUserService currentUser)
+    public ActivateLeaseCommandHandler(IApplicationDbContext context, ICurrentUserService currentUser, INumberGeneratorService numberGenerator)
     {
         _context = context;
         _currentUser = currentUser;
+        _numberGenerator = numberGenerator;
     }
 
     public async Task Handle(ActivateLeaseCommand request, CancellationToken cancellationToken)
@@ -53,6 +58,38 @@ public class ActivateLeaseCommandHandler : IRequestHandler<ActivateLeaseCommand>
         if (unit is not null)
         {
             unit.CurrentStatus = Domain.Common.Enums.UnitStatus.Rented;
+        }
+
+        if (lease.AgentId.HasValue && lease.CommissionPercentage > 0)
+        {
+            var commissionExists = await _context.Commissions.AnyAsync(
+                c => c.LeaseId == lease.Id && !c.IsDeleted, cancellationToken);
+
+            if (!commissionExists)
+            {
+                const decimal vatPercentage = 15;
+                var commissionAmount = Math.Round(lease.AnnualRentAmount * lease.CommissionPercentage / 100, 2, MidpointRounding.AwayFromZero);
+                var vatAmount = Math.Round(commissionAmount * vatPercentage / 100, 2, MidpointRounding.AwayFromZero);
+
+                var commissionNumber = await _numberGenerator.GenerateNextNumberAsync("COMM", lease.CompanyId, cancellationToken);
+
+                _context.Commissions.Add(new Commission
+                {
+                    CompanyId = lease.CompanyId,
+                    BranchId = lease.BranchId,
+                    CommissionNumber = commissionNumber,
+                    AgentId = lease.AgentId.Value,
+                    SourceType = CommissionSourceType.Lease,
+                    LeaseId = lease.Id,
+                    BaseAmount = lease.AnnualRentAmount,
+                    CommissionPercentage = lease.CommissionPercentage,
+                    CommissionAmount = commissionAmount,
+                    VatPercentage = vatPercentage,
+                    VatAmount = vatAmount,
+                    NetCommissionAmount = commissionAmount + vatAmount,
+                    Status = CommissionStatus.Pending
+                });
+            }
         }
 
         await _context.SaveChangesAsync(cancellationToken);

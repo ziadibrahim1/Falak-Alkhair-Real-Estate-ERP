@@ -23,6 +23,11 @@ public static class Permissions
         public const string Tenant = nameof(Tenant);
         public const string Lease = nameof(Lease);
         public const string Payment = nameof(Payment);
+        public const string Agent = nameof(Agent);
+        public const string Buyer = nameof(Buyer);
+        public const string Seller = nameof(Seller);
+        public const string Lead = nameof(Lead);
+        public const string Commission = nameof(Commission);
     }
 
     public static class Actions
@@ -102,6 +107,35 @@ public static class Permissions
     public const string PaymentView = "Payment.View";
     public const string PaymentCreate = "Payment.Create";
 
+    // --- Agent (المسوّقون العقاريون) ---
+    public const string AgentView = "Agent.View";
+    public const string AgentCreate = "Agent.Create";
+    public const string AgentEdit = "Agent.Edit";
+    public const string AgentDelete = "Agent.Delete";
+
+    // --- Buyer (المشترون) ---
+    public const string BuyerView = "Buyer.View";
+    public const string BuyerCreate = "Buyer.Create";
+    public const string BuyerEdit = "Buyer.Edit";
+    public const string BuyerDelete = "Buyer.Delete";
+
+    // --- Seller (البائعون) ---
+    public const string SellerView = "Seller.View";
+    public const string SellerCreate = "Seller.Create";
+    public const string SellerEdit = "Seller.Edit";
+    public const string SellerDelete = "Seller.Delete";
+
+    // --- Lead (العملاء المحتملون) ---
+    public const string LeadView = "Lead.View";
+    public const string LeadCreate = "Lead.Create";
+    public const string LeadEdit = "Lead.Edit";
+    public const string LeadDelete = "Lead.Delete";
+    public const string LeadAssign = "Lead.Assign";
+
+    // --- Commission (عمولات المسوّقين) ---
+    public const string CommissionView = "Commission.View";
+    public const string CommissionManage = "Commission.Manage";
+
     public static readonly IReadOnlyList<(string Code, string Module, string Action, string DescriptionAr)> All = new List<(string, string, string, string)>
     {
         (PropertyView, Modules.Property, Actions.View, "عرض العقارات"),
@@ -153,5 +187,29 @@ public static class Permissions
 
         (PaymentView, Modules.Payment, Actions.View, "عرض المدفوعات"),
         (PaymentCreate, Modules.Payment, Actions.Create, "تسجيل دفعة"),
+
+        (AgentView, Modules.Agent, Actions.View, "عرض المسوّقين العقاريين"),
+        (AgentCreate, Modules.Agent, Actions.Create, "إضافة مسوّق عقاري"),
+        (AgentEdit, Modules.Agent, Actions.Edit, "تعديل مسوّق عقاري"),
+        (AgentDelete, Modules.Agent, Actions.Delete, "حذف مسوّق عقاري"),
+
+        (BuyerView, Modules.Buyer, Actions.View, "عرض المشترين"),
+        (BuyerCreate, Modules.Buyer, Actions.Create, "إضافة مشترٍ"),
+        (BuyerEdit, Modules.Buyer, Actions.Edit, "تعديل مشترٍ"),
+        (BuyerDelete, Modules.Buyer, Actions.Delete, "حذف مشترٍ"),
+
+        (SellerView, Modules.Seller, Actions.View, "عرض البائعين"),
+        (SellerCreate, Modules.Seller, Actions.Create, "إضافة بائع"),
+        (SellerEdit, Modules.Seller, Actions.Edit, "تعديل بائع"),
+        (SellerDelete, Modules.Seller, Actions.Delete, "حذف بائع"),
+
+        (LeadView, Modules.Lead, Actions.View, "عرض العملاء المحتملين"),
+        (LeadCreate, Modules.Lead, Actions.Create, "إضافة عميل محتمل"),
+        (LeadEdit, Modules.Lead, Actions.Edit, "تعديل عميل محتمل"),
+        (LeadDelete, Modules.Lead, Actions.Delete, "حذف عميل محتمل"),
+        (LeadAssign, Modules.Lead, Actions.Assign, "إسناد عميل محتمل لمسوّق"),
+
+        (CommissionView, Modules.Commission, Actions.View, "عرض عمولات المسوّقين"),
+        (CommissionManage, Modules.Commission, Actions.Manage, "إدارة عمولات المسوّقين"),
     };
 }

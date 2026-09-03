@@ -1,6 +1,6 @@
-# مخطط قاعدة البيانات — الإصدار التأسيسي
+# مخطط قاعدة البيانات — حتى نهاية Phase 4
 
-قاعدة البيانات: **SQL Server**. هذا المستند يغطي الجداول المبنية فعليًا في هذا الإصدار. جداول المراحل القادمة (Leases, Payments, Maintenance, Auctions ...) موثّقة في [ROADMAP.md](./ROADMAP.md) وليست جزءًا من هذا الـ Schema بعد.
+قاعدة البيانات: **SQL Server**. هذا المستند يغطي الجداول المبنية فعليًا حتى Phase 4 (Properties/Units/Owners، Tenants/Leases/Payments، Agents/Buyers/Sellers/Leads/Commissions). جداول المراحل القادمة (Listings, Maintenance, Auctions ...) موثّقة في [ROADMAP.md](./ROADMAP.md) وليست جزءًا من هذا الـ Schema بعد.
 
 ## ERD
 
@@ -19,8 +19,25 @@ erDiagram
     Property ||--o{ Unit : "يحتوي"
     Property ||--o{ PropertyManagementAgreement : "موضوع"
 
+    Tenant ||--o{ Lease : "يستأجر"
+    Owner ||--o{ Lease : "طرف في"
+    Unit ||--o{ Lease : "مؤجَّرة عبر"
+    Lease ||--o{ LeasePayment : "جدول سداد"
+    LeasePayment ||--o{ Payment : "تحصيل مقابل"
+    Agent ||--o{ Lease : "أبرم"
+
+    Agent ||--o{ Commission : "يستحق"
+    Lease ||--o{ Commission : "يولّد"
+    Agent ||--o{ Buyer : "مسؤول عن"
+    Agent ||--o{ Seller : "مسؤول عن"
+    Agent ||--o{ Lead : "مسؤول عن"
+    Owner ||--o{ Seller : "طرف في"
+    Property ||--o{ Seller : "موضوع"
+    Property ||--o{ Lead : "مهتم بـ"
+
     Company ||--o{ Owner : "نطاق"
     Company ||--o{ Property : "نطاق"
+    Company ||--o{ Agent : "نطاق"
     Company ||--o{ NumberSequence : "نطاق"
     Company ||--o{ AuditLog : "نطاق"
 
@@ -160,24 +177,139 @@ erDiagram
         string Status
         guid CompanyId FK
     }
+
+    Tenant {
+        guid Id PK
+        string TenantCode UK
+        string NameAr
+        string Mobile
+        guid CompanyId FK
+    }
+
+    Lease {
+        guid Id PK
+        string LeaseNumber UK
+        guid TenantId FK
+        guid OwnerId FK
+        guid PropertyId FK
+        guid UnitId FK
+        guid AgentId FK "nullable"
+        decimal AnnualRentAmount
+        decimal CommissionPercentage
+        string Status
+        guid CompanyId FK
+    }
+
+    LeasePayment {
+        guid Id PK
+        guid LeaseId FK
+        int InstallmentNumber
+        datetime DueDate
+        decimal Amount
+        decimal PaidAmount
+        string Status
+    }
+
+    Payment {
+        guid Id PK
+        string PaymentNumber UK
+        guid LeaseId FK
+        guid LeasePaymentId FK "nullable"
+        decimal Amount
+        datetime PaymentDate
+        string PaymentMethod
+    }
+
+    Agent {
+        guid Id PK
+        string AgentCode UK
+        string NameAr
+        string Mobile
+        string FalLicenseNumber
+        string Status
+        decimal DefaultCommissionPercentage
+        guid CompanyId FK
+    }
+
+    Buyer {
+        guid Id PK
+        string BuyerCode UK
+        string NameAr
+        string Mobile
+        decimal Budget
+        string PreferredCity
+        string PreferredPropertyType
+        guid AssignedAgentId FK "nullable"
+        guid CompanyId FK
+    }
+
+    Seller {
+        guid Id PK
+        string SellerCode UK
+        guid OwnerId FK
+        guid PropertyId FK "nullable"
+        decimal AskingPrice
+        decimal CommissionPercentage
+        string MandateStatus
+        guid AssignedAgentId FK "nullable"
+        guid CompanyId FK
+    }
+
+    Lead {
+        guid Id PK
+        string LeadCode UK
+        string NameAr
+        string Mobile
+        string Source
+        string LeadType
+        guid InterestedPropertyId FK "nullable"
+        guid AssignedAgentId FK "nullable"
+        string Status
+        string Priority
+        guid CompanyId FK
+    }
+
+    Commission {
+        guid Id PK
+        string CommissionNumber UK
+        guid AgentId FK
+        string SourceType
+        guid LeaseId FK "nullable"
+        decimal BaseAmount
+        decimal CommissionPercentage
+        decimal CommissionAmount
+        decimal VatAmount
+        decimal NetCommissionAmount
+        string Status
+        guid CompanyId FK
+    }
 ```
 
 ## ملاحظات تصميمية مهمة
 
-- **Soft Delete**: `Owner`, `Property`, `Unit`, `PropertyManagementAgreement`, `Document` تحمل `IsDeleted` + `DeletedAt` + `DeletedBy`، مع Global Query Filter في EF Core يستبعدها تلقائيًا من كل الاستعلامات. لا يوجد حذف فعلي (`DELETE`) لأي سجل عمل.
+- **Soft Delete**: كل الكيانات التي ترث `BaseAuditableEntity` (`Owner`, `Property`, `Unit`, `PropertyManagementAgreement`, `Document`, `Tenant`, `Lease`, `LeasePayment`, `Payment`, `Agent`, `Buyer`, `Seller`, `Lead`, `Commission`) تحمل `IsDeleted` + `DeletedAt` + `DeletedBy`، مع Global Query Filter في EF Core يستبعدها تلقائيًا من كل الاستعلامات. لا يوجد حذف فعلي (`DELETE`) لأي سجل عمل.
+- **عمولات المسوّقين تلقائية**: `Commission` لا تُنشأ يدويًا في المسار الطبيعي — تُولَّد تلقائيًا عند تفعيل `Lease` له `AgentId` ونسبة عمولة > صفر (راجع `ActivateLeaseCommand` وROADMAP.md، Phase 4). `POST /api/commissions` مخصص فقط لحالات استثنائية يدوية.
+- **مزامنة عدّادات الترقيم مع بيانات البذر (Seed)**: أي كيان يُزرَع ببيانات تطويرية بكود ثابت (`Owner.OwnerCode = "OWNER-000001"` مثلًا) يجب أن يُسجَّل أيضًا في `EnsureNumberSequenceSeededAsync` بنهاية `ApplicationDbContextSeed.SeedAsync`، وإلا فسيصطدم أول طلب فعلي عبر الـ API لنفس النوع بقيد التفرّد (Unique Index) — هذا خطأ تم اكتشافه وإصلاحه فعليًا أثناء بناء Phase 4 (راجع ROADMAP.md).
 - **الفهرسة (Indexes)**: فهارس فريدة مركّبة على `(CompanyId, Code)` لكل الجداول ذات الترقيم المرجعي، وفهارس على الحقول المستخدمة في البحث/الفلترة (الحالة، المدينة، رقم الجوال، رقم الصك، التواريخ) تحقيقًا لمتطلب الأداء تحت آلاف السجلات.
 - **الدقة المالية**: كل الحقول المالية (`decimal`) بدقة `(18,2)` لتفادي أخطاء التقريب.
 - **RowVersion**: `NumberSequence` يحمل `RowVersion` (Concurrency Token) كحماية إضافية، رغم أن الآلية الأساسية لمنع التعارض هي عبارة SQL ذرّية (راجع ARCHITECTURE.md، البند 7).
 - **AuditLog بلا FK صارم على المستخدم**: `UserId` بلا Foreign Key قسري حتى يبقى السجل قابلاً للقراءة حتى لو حُذف المستخدم مستقبلاً (وإن كان الحذف الفعلي للمستخدمين غير متوقَّع أصلًا).
 
-## أمر توليد الـ Migration الفعلي
+## الـ Migrations
 
-ملفات EF Core Migrations لم تُولَّد داخل هذه الجلسة (بيئة التطوير السحابية هنا محجوبة عن NuGet)، لكن كل الكيانات وإعدادات EF (Fluent API) جاهزة بالكامل. نفّذ من جذر المشروع بعد `dotnet restore`:
+على عكس الإصدارات التأسيسية الأولى (Phase 1/2 حيث لم يتوفر وصول لـ NuGet)، migrations هذا الإصدار **مُولَّدة فعليًا وموجودة في المستودع** (`src/Backend/FalakAlkhair.Infrastructure/Persistence/Migrations/`):
+
+1. `InitialCreate` — Phase 1/2 (Companies, Branches, Identity, Permissions, Owners, Properties, Units, PropertyManagementAgreement).
+2. `AddTenantsLeasesPayments` — Phase 3 (Tenants, Leases, LeasePayments, Payments).
+3. `AddAgentsBuyersSellersLeadsCommissions` — Phase 4 (Agents, Buyers, Sellers, Leads, Commissions, وإضافة `Lease.AgentId`).
+
+كل migration من الثلاثة أعلاه **طُبِّق فعليًا** على SQL Server 2022 حقيقي (Docker) وتم التحقق من عمل النظام الكامل (Seed، تسجيل الدخول، CRUD عبر كل Endpoint) قبل رفعه — وليس كودًا مكتوبًا يدويًا بلا اختبار.
+
+عند إضافة كيانات جديدة مستقبلًا، نفّذ من `src/Backend` بعد `dotnet restore`:
 
 ```bash
 dotnet tool install --global dotnet-ef
-cd src/Backend
-dotnet ef migrations add InitialCreate \
+dotnet ef migrations add <MigrationName> \
   --project FalakAlkhair.Infrastructure \
   --startup-project FalakAlkhair.API \
   --output-dir Persistence/Migrations

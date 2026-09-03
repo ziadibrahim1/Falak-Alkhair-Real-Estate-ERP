@@ -27,7 +27,11 @@ public class NumberGeneratorService : INumberGeneratorService
         ["AUCT"] = "AUCT",
         ["PAY"] = "PAY",
         ["EXP"] = "EXP",
-        ["LEAD"] = "LEAD"
+        ["LEAD"] = "LEAD",
+        ["AGENT"] = "AGENT",
+        ["BUYER"] = "BUYER",
+        ["SELLER"] = "SELLER",
+        ["COMM"] = "COMM"
     };
 
     private readonly ApplicationDbContext _context;
@@ -73,11 +77,15 @@ public class NumberGeneratorService : INumberGeneratorService
     {
         try
         {
+            // ملاحظة: التمرير الصريح لـ CancellationToken كوسيط منفصل ضروري هنا — تمريره
+            // كعنصر أخير ضمن params object[] (كما كان سابقًا) يجعل EF Core يحاول ربطه
+            // كمعامل SQL فيفشل بخطأ "no store type mapping for CancellationToken".
             await _context.Database.ExecuteSqlRawAsync(
                 @"IF NOT EXISTS (SELECT 1 FROM NumberSequences WHERE EntityKey = {0} AND CompanyId = {1})
                   INSERT INTO NumberSequences (Id, EntityKey, Prefix, CurrentNumber, PaddingLength, CompanyId)
                   VALUES (NEWID(), {0}, {2}, 0, 6, {1})",
-                entityKey, companyId, prefix, cancellationToken);
+                new object[] { entityKey, companyId, prefix },
+                cancellationToken);
         }
         catch (SqlException)
         {

@@ -27,6 +27,7 @@ public class GetLeaseByIdQueryHandler : IRequestHandler<GetLeaseByIdQuery, Lease
             .Include(l => l.Owner)
             .Include(l => l.Property)
             .Include(l => l.Unit)
+            .Include(l => l.Agent)
             .Include(l => l.Payments)
             .Where(l => l.CompanyId == _currentUser.CompanyId && !l.IsDeleted)
             .FirstOrDefaultAsync(l => l.Id == request.Id, cancellationToken)
@@ -44,6 +45,8 @@ public class GetLeaseByIdQueryHandler : IRequestHandler<GetLeaseByIdQuery, Lease
             PropertyName = lease.Property.PropertyName,
             UnitId = lease.UnitId,
             UnitNumber = lease.Unit.UnitNumber,
+            AgentId = lease.AgentId,
+            AgentNameAr = lease.Agent?.NameAr,
             StartDate = lease.StartDate,
             EndDate = lease.EndDate,
             AnnualRentAmount = lease.AnnualRentAmount,

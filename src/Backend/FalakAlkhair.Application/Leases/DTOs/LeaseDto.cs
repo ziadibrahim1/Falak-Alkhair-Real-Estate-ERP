@@ -15,6 +15,8 @@ public class LeaseDto
     public string PropertyName { get; set; } = default!;
     public Guid UnitId { get; set; }
     public string UnitNumber { get; set; } = default!;
+    public Guid? AgentId { get; set; }
+    public string? AgentNameAr { get; set; }
     public DateTime StartDate { get; set; }
     public DateTime EndDate { get; set; }
     public decimal AnnualRentAmount { get; set; }

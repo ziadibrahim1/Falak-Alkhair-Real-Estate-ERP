@@ -25,6 +25,11 @@ public class Lease : BaseAuditableEntity
     public Guid UnitId { get; set; }
     public Unit Unit { get; set; } = default!;
 
+    /// <summary>المسوّق العقاري الذي أبرم العقد (اختياري). عند تفعيل العقد وتوفر
+    /// مسوّق، تُولَّد عمولة (Commission) تلقائيًا وفق CommissionPercentage أدناه.</summary>
+    public Guid? AgentId { get; set; }
+    public Agent? Agent { get; set; }
+
     public DateTime StartDate { get; set; }
     public DateTime EndDate { get; set; }
 
@@ -45,4 +50,5 @@ public class Lease : BaseAuditableEntity
     public string? TerminationReason { get; set; }
 
     public ICollection<LeasePayment> Payments { get; set; } = new List<LeasePayment>();
+    public ICollection<Commission> Commissions { get; set; } = new List<Commission>();
 }

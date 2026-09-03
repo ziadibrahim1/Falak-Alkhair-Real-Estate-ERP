@@ -16,6 +16,7 @@ public record UpdateLeaseCommand : IRequest
 {
     public Guid Id { get; init; }
     public DateTime EndDate { get; init; }
+    public Guid? AgentId { get; init; }
     public decimal SecurityDeposit { get; init; }
     public decimal CommissionPercentage { get; init; }
     public decimal VatPercentage { get; init; }
@@ -61,7 +62,15 @@ public class UpdateLeaseCommandHandler : IRequestHandler<UpdateLeaseCommand>
             throw new Common.Exceptions.BusinessRuleException("تاريخ النهاية يجب أن يكون بعد تاريخ البداية.");
         }
 
+        if (request.AgentId.HasValue)
+        {
+            var agentExists = await _context.Agents.AnyAsync(
+                a => a.Id == request.AgentId.Value && a.CompanyId == _currentUser.CompanyId && !a.IsDeleted, cancellationToken);
+            if (!agentExists) throw new NotFoundException(nameof(Domain.Entities.Agent), request.AgentId.Value);
+        }
+
         lease.EndDate = request.EndDate;
+        lease.AgentId = request.AgentId;
         lease.SecurityDeposit = request.SecurityDeposit;
         lease.CommissionPercentage = request.CommissionPercentage;
         lease.VatPercentage = request.VatPercentage;

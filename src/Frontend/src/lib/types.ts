@@ -94,6 +94,8 @@ export interface LeaseDto {
   propertyName: string;
   unitId: string;
   unitNumber: string;
+  agentId?: string;
+  agentNameAr?: string;
   startDate: string;
   endDate: string;
   annualRentAmount: number;
@@ -112,4 +114,99 @@ export interface LeasePaymentDto {
   remainingAmount: number;
   status: number;
   isOverdue: boolean;
+}
+
+export interface AgentDto {
+  id: string;
+  agentCode: string;
+  nameAr: string;
+  nameEn?: string;
+  mobile: string;
+  email?: string;
+  falLicenseNumber?: string;
+  falLicenseExpiryDate?: string;
+  specialization?: string;
+  status: number;
+  defaultCommissionPercentage: number;
+  isActive: boolean;
+  commissionsCount: number;
+}
+
+export interface BuyerDto {
+  id: string;
+  buyerCode: string;
+  nameAr: string;
+  nameEn?: string;
+  mobile: string;
+  email?: string;
+  budget?: number;
+  preferredCity?: string;
+  preferredDistrict?: string;
+  purpose: number;
+  financingStatus: number;
+  assignedAgentId?: string;
+  assignedAgentNameAr?: string;
+  isActive: boolean;
+}
+
+export interface PropertyMatchDto {
+  propertyId: string;
+  propertyCode: string;
+  propertyName: string;
+  city?: string;
+  district?: string;
+  unitId: string;
+  unitCode: string;
+  unitNumber: string;
+  area?: number;
+  salePrice?: number;
+}
+
+export interface SellerDto {
+  id: string;
+  sellerCode: string;
+  ownerId: string;
+  ownerNameAr: string;
+  propertyId?: string;
+  propertyName?: string;
+  askingPrice: number;
+  minimumPrice?: number;
+  commissionPercentage: number;
+  mandateStatus: number;
+  mandateStartDate: string;
+  mandateEndDate?: string;
+  assignedAgentId?: string;
+  assignedAgentNameAr?: string;
+}
+
+export interface LeadDto {
+  id: string;
+  leadCode: string;
+  nameAr: string;
+  mobile: string;
+  email?: string;
+  source: number;
+  leadType: number;
+  interestedPropertyId?: string;
+  interestedPropertyName?: string;
+  assignedAgentId?: string;
+  assignedAgentNameAr?: string;
+  status: number;
+  priority: number;
+}
+
+export interface CommissionDto {
+  id: string;
+  commissionNumber: string;
+  agentId: string;
+  agentNameAr: string;
+  sourceType: number;
+  leaseId?: string;
+  leaseNumber?: string;
+  baseAmount: number;
+  commissionPercentage: number;
+  commissionAmount: number;
+  vatAmount: number;
+  netCommissionAmount: number;
+  status: number;
 }

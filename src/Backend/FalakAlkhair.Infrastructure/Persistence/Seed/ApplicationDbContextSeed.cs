@@ -213,7 +213,69 @@ public static class ApplicationDbContextSeed
             sampleUnit = sampleProperty is null ? null : await context.Units.FirstOrDefaultAsync(u => u.PropertyId == sampleProperty.Id);
         }
 
-        // 6) مستأجر وعقد إيجار تجريبيان — يغطيان جدول السداد التلقائي ودفعة مسددة جزئيًا،
+        // 6) مسوّق عقاري تجريبي (Phase 4) — يُربَط بعقد الإيجار التجريبي أدناه لتوليد
+        // عمولة حقيقية تلقائيًا، تمامًا كما يحدث فعليًا عند تفعيل أي عقد له مسوّق.
+        var sampleAgent = await context.Agents.FirstOrDefaultAsync(a => a.CompanyId == company.Id);
+        if (sampleAgent is null)
+        {
+            sampleAgent = new Agent
+            {
+                CompanyId = company.Id,
+                BranchId = mainBranch.Id,
+                AgentCode = "AGENT-000001",
+                NameAr = "فهد بن ناصر القحطاني",
+                Mobile = "0566666666",
+                FalLicenseNumber = "FAL-100001",
+                FalLicenseExpiryDate = DateTime.UtcNow.AddYears(1),
+                Status = AgentStatus.Active,
+                CommissionSchemeType = CommissionType.Percentage,
+                DefaultCommissionPercentage = 5,
+                IsActive = true
+            };
+            context.Agents.Add(sampleAgent);
+            await context.SaveChangesAsync();
+        }
+
+        // 7) مشترٍ تجريبي بمعايير بحث تُستخدم فعليًا في محرك المطابقة البسيط (Buyer Matching).
+        if (!await context.Buyers.AnyAsync(b => b.CompanyId == company.Id))
+        {
+            context.Buyers.Add(new Buyer
+            {
+                CompanyId = company.Id,
+                BranchId = mainBranch.Id,
+                BuyerCode = "BUYER-000001",
+                NameAr = "منيرة بنت عبدالعزيز الدوسري",
+                Mobile = "0577777777",
+                Budget = 900_000,
+                PreferredCity = "الرياض",
+                Purpose = BuyerPurpose.PersonalUse,
+                FinancingStatus = FinancingStatus.BankFinancing,
+                AssignedAgentId = sampleAgent.Id,
+                IsActive = true
+            });
+            await context.SaveChangesAsync();
+        }
+
+        // 8) عميل محتمل تجريبي (Lead) لتغطية نقطة الدخول المركزية لـ CRM النظام.
+        if (!await context.Leads.AnyAsync(l => l.CompanyId == company.Id))
+        {
+            context.Leads.Add(new Lead
+            {
+                CompanyId = company.Id,
+                BranchId = mainBranch.Id,
+                LeadCode = "LEAD-000001",
+                NameAr = "عبدالرحمن بن سالم الغامدي",
+                Mobile = "0588888888",
+                Source = LeadSource.Website,
+                LeadType = LeadType.Buyer,
+                AssignedAgentId = sampleAgent.Id,
+                Status = LeadStatus.Contacted,
+                Priority = LeadPriority.High
+            });
+            await context.SaveChangesAsync();
+        }
+
+        // 9) مستأجر وعقد إيجار تجريبيان — يغطيان جدول السداد التلقائي ودفعة مسددة جزئيًا،
         // ليكون موديول الإيجارات قابلًا للاختبار الفوري من الواجهة الأمامية دون إدخال يدوي.
         if (sampleProperty is not null && sampleUnit is not null && !await context.Tenants.AnyAsync(t => t.CompanyId == company.Id))
         {
@@ -243,6 +305,7 @@ public static class ApplicationDbContextSeed
                 OwnerId = sampleOwner.Id,
                 PropertyId = sampleProperty.Id,
                 UnitId = sampleUnit.Id,
+                AgentId = sampleAgent.Id,
                 StartDate = leaseStart,
                 EndDate = leaseStart.AddYears(1).AddDays(-1),
                 AnnualRentAmount = 35000,
@@ -287,7 +350,74 @@ public static class ApplicationDbContextSeed
                 ReferenceNumber = "REF-0001",
                 BankName = "البنك الأهلي السعودي"
             });
+
+            // عمولة المسوّق الناتجة عن تفعيل العقد أعلاه — نفس المعادلة التي يطبّقها
+            // ActivateLeaseCommand تلقائيًا (تُدرَج هنا يدويًا لأن هذا العقد يُزرَع
+            // مباشرة بحالة Active دون المرور بالأمر نفسه).
+            const decimal commissionAmount = 35000 * 5 / 100m; // 1750
+            const decimal vatAmount = commissionAmount * 15 / 100m; // 262.5
+            context.Commissions.Add(new Commission
+            {
+                CompanyId = company.Id,
+                BranchId = mainBranch.Id,
+                CommissionNumber = "COMM-000001",
+                AgentId = sampleAgent.Id,
+                SourceType = CommissionSourceType.Lease,
+                LeaseId = sampleLease.Id,
+                BaseAmount = 35000,
+                CommissionPercentage = 5,
+                CommissionAmount = commissionAmount,
+                VatPercentage = 15,
+                VatAmount = vatAmount,
+                NetCommissionAmount = commissionAmount + vatAmount,
+                Status = CommissionStatus.Pending
+            });
+
             await context.SaveChangesAsync();
+        }
+
+        // 10) مزامنة عدّادات الترقيم المرجعي (NumberSequences) مع الأكواد المزروعة يدويًا
+        // أعلاه (مثال: "LEAD-000001"). بيانات البذر تُدرَج مباشرة بأكواد ثابتة دون المرور
+        // بـ NumberGeneratorService، فإن لم تُزامَن العدّادات هنا، أول طلب فعلي عبر الـ API
+        // لنفس النوع يولّد نفس الكود المستخدم مسبقًا فيصطدم بقيد التفرّد (Unique Index).
+        await EnsureNumberSequenceSeededAsync(context, company.Id, "PROPERTY", "PROP", 1);
+        await EnsureNumberSequenceSeededAsync(context, company.Id, "UNIT", "UNIT", 1);
+        await EnsureNumberSequenceSeededAsync(context, company.Id, "OWNER", "OWNER", 1);
+        await EnsureNumberSequenceSeededAsync(context, company.Id, "TEN", "TEN", 1);
+        await EnsureNumberSequenceSeededAsync(context, company.Id, "LEASE", "LEASE", 1);
+        await EnsureNumberSequenceSeededAsync(context, company.Id, "PAY", "PAY", 1);
+        await EnsureNumberSequenceSeededAsync(context, company.Id, "AGENT", "AGENT", 1);
+        await EnsureNumberSequenceSeededAsync(context, company.Id, "BUYER", "BUYER", 1);
+        await EnsureNumberSequenceSeededAsync(context, company.Id, "LEAD", "LEAD", 1);
+        await EnsureNumberSequenceSeededAsync(context, company.Id, "COMM", "COMM", 1);
+        await context.SaveChangesAsync();
+    }
+
+    /// <summary>
+    /// يضمن وجود عدّاد (NumberSequence) لنوع مُعطى بحيث لا يقل CurrentNumber عن
+    /// minCurrentNumber (عدد السجلات المزروعة يدويًا بأكواد ثابتة لهذا النوع)،
+    /// دون إنقاص عدّاد موجود بالفعل بقيمة أعلى (مثال: بعد إنشاء سجلات فعلية عبر الـ API).
+    /// </summary>
+    private static async Task EnsureNumberSequenceSeededAsync(
+        ApplicationDbContext context, Guid companyId, string entityKey, string prefix, long minCurrentNumber)
+    {
+        var sequence = await context.NumberSequences
+            .FirstOrDefaultAsync(s => s.CompanyId == companyId && s.EntityKey == entityKey);
+
+        if (sequence is null)
+        {
+            context.NumberSequences.Add(new NumberSequence
+            {
+                CompanyId = companyId,
+                EntityKey = entityKey,
+                Prefix = prefix,
+                CurrentNumber = minCurrentNumber,
+                PaddingLength = 6
+            });
+        }
+        else if (sequence.CurrentNumber < minCurrentNumber)
+        {
+            sequence.CurrentNumber = minCurrentNumber;
         }
     }
 }

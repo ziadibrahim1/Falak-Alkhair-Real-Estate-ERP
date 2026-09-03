@@ -36,6 +36,12 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser, Applicati
     public DbSet<LeasePayment> LeasePayments => Set<LeasePayment>();
     public DbSet<Payment> Payments => Set<Payment>();
 
+    public DbSet<Agent> Agents => Set<Agent>();
+    public DbSet<Buyer> Buyers => Set<Buyer>();
+    public DbSet<Seller> Sellers => Set<Seller>();
+    public DbSet<Lead> Leads => Set<Lead>();
+    public DbSet<Commission> Commissions => Set<Commission>();
+
     protected override void OnModelCreating(ModelBuilder builder)
     {
         base.OnModelCreating(builder);
@@ -61,5 +67,10 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser, Applicati
         builder.Entity<Lease>().HasQueryFilter(e => !e.IsDeleted);
         builder.Entity<LeasePayment>().HasQueryFilter(e => !e.IsDeleted);
         builder.Entity<Payment>().HasQueryFilter(e => !e.IsDeleted);
+        builder.Entity<Agent>().HasQueryFilter(e => !e.IsDeleted);
+        builder.Entity<Buyer>().HasQueryFilter(e => !e.IsDeleted);
+        builder.Entity<Seller>().HasQueryFilter(e => !e.IsDeleted);
+        builder.Entity<Lead>().HasQueryFilter(e => !e.IsDeleted);
+        builder.Entity<Commission>().HasQueryFilter(e => !e.IsDeleted);
     }
 }

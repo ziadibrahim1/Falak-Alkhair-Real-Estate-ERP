@@ -41,6 +41,10 @@
     "agreements": "Management Agreements",
     "tenants": "Tenants",
     "leases": "Leases",
+    "buyers": "Buyers",
+    "sellers": "Sellers",
+    "agents": "Agents",
+    "leads": "Leads",
     "sales": "Sales",
     "maintenance": "Maintenance",
     "marketing": "Marketing",
@@ -123,5 +127,46 @@
     "activate": "Activate",
     "terminate": "Terminate",
     "addNew": "Create New Lease"
+  },
+  "agents": {
+    "title": "Real Estate Agents",
+    "code": "Agent Code",
+    "name": "Name",
+    "mobile": "Mobile",
+    "falLicense": "FAL License No.",
+    "defaultCommission": "Default Commission",
+    "commissionsCount": "Commissions",
+    "addNew": "Add New Agent"
+  },
+  "buyers": {
+    "title": "Buyers",
+    "code": "Buyer Code",
+    "name": "Name",
+    "mobile": "Mobile",
+    "budget": "Budget",
+    "preferredCity": "Preferred City",
+    "assignedAgent": "Assigned Agent",
+    "addNew": "Add New Buyer"
+  },
+  "sellers": {
+    "title": "Sellers",
+    "code": "Seller Code",
+    "owner": "Owner",
+    "property": "Property",
+    "askingPrice": "Asking Price",
+    "commission": "Commission",
+    "assignedAgent": "Assigned Agent",
+    "status": "Mandate Status",
+    "addNew": "Add New Seller"
+  },
+  "leads": {
+    "title": "Leads",
+    "code": "Lead Code",
+    "name": "Name",
+    "mobile": "Mobile",
+    "assignedAgent": "Assigned Agent",
+    "priority": "Priority",
+    "status": "Status",
+    "addNew": "Add New Lead"
   }
 }

@@ -13,6 +13,7 @@ public record CreateLeaseCommand : IRequest<Guid>
     public Guid TenantId { get; init; }
     public Guid PropertyId { get; init; }
     public Guid UnitId { get; init; }
+    public Guid? AgentId { get; init; }
     public DateTime StartDate { get; init; }
     public DateTime EndDate { get; init; }
     public decimal AnnualRentAmount { get; init; }
@@ -73,6 +74,13 @@ public class CreateLeaseCommandHandler : IRequestHandler<CreateLeaseCommand, Gui
             throw new Common.Exceptions.BusinessRuleException("الوحدة المحددة لا تنتمي للعقار المحدد.");
         }
 
+        if (request.AgentId.HasValue)
+        {
+            var agentExists = await _context.Agents.AnyAsync(
+                a => a.Id == request.AgentId.Value && a.CompanyId == companyId && !a.IsDeleted, cancellationToken);
+            if (!agentExists) throw new NotFoundException(nameof(Domain.Entities.Agent), request.AgentId.Value);
+        }
+
         // منع ازدواج تأجير نفس الوحدة بعقد نشط آخر يتقاطع في الفترة الزمنية.
         var hasOverlappingActiveLease = await _context.Leases.AnyAsync(l =>
             l.UnitId == request.UnitId && !l.IsDeleted &&
@@ -104,6 +112,7 @@ public class CreateLeaseCommandHandler : IRequestHandler<CreateLeaseCommand, Gui
             OwnerId = property.OwnerId,
             PropertyId = request.PropertyId,
             UnitId = request.UnitId,
+            AgentId = request.AgentId,
             StartDate = request.StartDate,
             EndDate = request.EndDate,
             AnnualRentAmount = request.AnnualRentAmount,

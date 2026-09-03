@@ -65,6 +65,8 @@ public class GetLeasesListQueryHandler : IRequestHandler<GetLeasesListQuery, Pag
             PropertyName = l.Property.PropertyName,
             UnitId = l.UnitId,
             UnitNumber = l.Unit.UnitNumber,
+            AgentId = l.AgentId,
+            AgentNameAr = l.Agent != null ? l.Agent.NameAr : null,
             StartDate = l.StartDate,
             EndDate = l.EndDate,
             AnnualRentAmount = l.AnnualRentAmount,

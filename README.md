@@ -2,23 +2,25 @@
 
 نظام ERP عقاري لإدارة الأملاك والوساطة العقارية، مصمم لشركة فلك الخير العقارية في السوق السعودي.
 
-> **حالة المشروع:** إصدار تأسيسي (Foundation) — Production-ready للنطاق المبني فعليًا (راجع [docs/ARCHITECTURE.md](./docs/ARCHITECTURE.md#10-الموديولات-المبنية-في-هذا-الإصدار))، وليس نموذجًا تجريبيًا: مصادقة وتفويض حقيقيان، سجل تدقيق تلقائي، عمليات فعلية على SQL Server. بقية الموديولات (تأجير، مبيعات، صيانة، مزادات ...) موثّقة كخطة تنفيذ واضحة في [docs/ROADMAP.md](./docs/ROADMAP.md) ولم تُبنَ بعد — لا يوجد أي ادّعاء بخلاف ذلك.
+> **حالة المشروع:** حتى نهاية Phase 4 (راجع [docs/ARCHITECTURE.md](./docs/ARCHITECTURE.md#10-الموديولات-المبنية-في-هذا-الإصدار)) — Production-ready للنطاق المبني فعليًا، وليس نموذجًا تجريبيًا: مصادقة وتفويض حقيقيان، سجل تدقيق تلقائي، عمليات فعلية على SQL Server. بقية الموديولات (المبيعات، الصيانة، المزادات ...) موثّقة كخطة تنفيذ واضحة في [docs/ROADMAP.md](./docs/ROADMAP.md) ولم تُبنَ بعد — لا يوجد أي ادّعاء بخلاف ذلك.
 
 ## المستندات
 
 - [docs/ARCHITECTURE.md](./docs/ARCHITECTURE.md) — العمارة، Tech Stack، الأمان، RBAC، Audit Log.
-- [docs/DATABASE.md](./docs/DATABASE.md) — ERD وتفاصيل الجداول وأمر توليد الـ Migrations.
-- [docs/ROADMAP.md](./docs/ROADMAP.md) — خطة المراحل القادمة (Phase 3 → 9).
+- [docs/DATABASE.md](./docs/DATABASE.md) — ERD وتفاصيل الجداول وحالة الـ Migrations.
+- [docs/ROADMAP.md](./docs/ROADMAP.md) — خطة المراحل القادمة (Phase 5 → 9).
 
-## ⚠️ ملاحظة مهمة حول بيئة البناء التي أُنشئ فيها هذا الكود
+## ✅ حالة التحقق الفعلي (Build/Test/Run)
 
-كُتب هذا المشروع داخل بيئة سحابية معزولة (Sandbox) بلا وصول شبكي إلى `nuget.org` (سياسة أمان الشبكة في تلك البيئة). نتيجة لذلك:
+على عكس الإصدارات التأسيسية الأولى (حيث لم تتوفر بيئة بها .NET SDK أو Docker)، تم في جلسة بناء Phase 4 تنفيذ كل ما يلي **فعليًا، لا نظريًا**:
 
-- **الـ Backend (.NET)**: كل الكود مكتوب ومُراجَع يدويًا بعناية (توازن أقواس، تطابق أنواع، تسلسل الاعتماديات)، لكن **لم يُشغَّل `dotnet build`/`dotnet test` فعليًا** لأن حزم NuGet (EF Core، Identity، JWT، MediatR ...) تعذّر تنزيلها. يجب تشغيل `dotnet restore && dotnet build` أول مرة على جهازك أو في CI للتأكد.
-- **الـ Frontend (Next.js)**: عكس ذلك تمامًا — `npm install`, `npm run build`, و`npm run lint` **نُفِّذت فعليًا ونجحت** داخل بيئة البناء (لأن سجل npm كان متاحًا)، فالواجهة الأمامية مُتحقَّق من بنائها فعليًا.
-- **قاعدة البيانات**: لا يوجد SQL Server حقيقي أو Docker daemon في تلك البيئة، فملفات EF Core Migrations لم تُولَّد. كل إعدادات EF Core (DbContext، Fluent API Configurations، الفهارس) جاهزة بالكامل؛ الخطوة المتبقية هي أمر واحد (موثّق أدناه) لتوليد الـ Migration الأولى على جهازك.
+- `dotnet restore && dotnet build` على الحل الكامل (5 مشاريع) — نجح بلا أخطاء ولا تحذيرات.
+- `dotnet test` — **25 اختبارًا ناجحًا** (FluentValidation validators، Handlers، منطق توليد العمولات التلقائي).
+- توليد migration حقيقي (`dotnet ef migrations add`) وتطبيقه فعليًا على **SQL Server 2022 حقيقي عبر Docker** (`dotnet ef database update`) — قاعدة بيانات كاملة بكل الجداول والفهارس والعلاقات، وليس ملفًا نظريًا لم يُختبر.
+- تشغيل الـ API الفعلي (`dotnet run`) مع تفعيل الـ Seed، تسجيل دخول حقيقي عبر JWT، وتنفيذ طلبات CRUD حقيقية (إنشاء/قراءة) على كل Endpoint جديد في Phase 4 — بما فيها اكتشاف وإصلاح خطأ حقيقي في `NumberGeneratorService` كان سيمنع أول عملية إنشاء فعلية لأي كيان (راجع docs/ROADMAP.md لتفاصيل الإصلاح).
+- `npm install && npm run lint && npm run build` على الواجهة الأمامية (46 صفحة، مسارين لغويين) — نجح بلا أخطاء.
 
-باختصار: الكود حقيقي وكامل وليس Placeholder، لكن التحقق النهائي من بناء الـ Backend وتوليد قاعدة البيانات يحتاج تشغيله مرة واحدة في بيئة لديها وصول عادي للإنترنت.
+بيئة تنفيذ لاحقة قد لا تملك دائمًا وصولًا لـ .NET SDK/Docker بنفس السهولة؛ إن حدث ذلك مستقبلًا، ستُوثَّق أي قيود بنفس الصراحة كما في الإصدارات الأولى بدل الادّعاء بخلاف الواقع.
 
 ## البنية العامة
 
@@ -57,14 +59,12 @@ cd ..
 # 3. تثبيت أداة EF Core CLI (مرة واحدة على الجهاز)
 dotnet tool install --global dotnet-ef
 
-# 4. توليد أول Migration (لأول مرة فقط — إن كانت قاعدة بياناتك مُنشأة مسبقًا من إصدار
-#    سابق (Phase 1/2)، شغّل بدلًا من ذلك أمر Migration جديد لجداول Phase 3
-#    (Tenants/Leases/LeasePayments/Payments) بدل InitialCreate:
-#    dotnet ef migrations add AddTenantsLeasesPayments --project FalakAlkhair.Infrastructure --startup-project FalakAlkhair.API --output-dir Persistence/Migrations
-dotnet ef migrations add InitialCreate \
+# 4. تطبيق الـ Migrations الموجودة بالفعل في المستودع (InitialCreate → AddTenantsLeasesPayments
+#    → AddAgentsBuyersSellersLeadsCommissions) — لا حاجة لإنشاء migration جديد إلا عند إضافة
+#    كيانات جديدة فعليًا. dotnet run أدناه يطبّقها تلقائيًا في بيئة Development، أو نفّذها يدويًا:
+dotnet ef database update \
   --project FalakAlkhair.Infrastructure \
-  --startup-project FalakAlkhair.API \
-  --output-dir Persistence/Migrations
+  --startup-project FalakAlkhair.API
 
 # 5. تشغيل الـ API (ينشئ قاعدة البيانات ويطبّق الـ Seed تلقائيًا في بيئة Development)
 dotnet run --project FalakAlkhair.API
@@ -107,7 +107,7 @@ cd src/Backend
 dotnet test
 ```
 
-تُغطّي الاختبارات الحالية: FluentValidation validators (الملاك والعقارات)، ومنطق Workflow اعتماد عقود إدارة الأملاك (Draft/PendingApproval → Active، ورفض اعتماد عقد منتهٍ) عبر EF Core InMemory.
+25 اختبارًا ناجحًا (تم التحقق فعليًا). تُغطّي الاختبارات الحالية: FluentValidation validators (الملاك، العقارات، المسوّقين)، منطق Workflow اعتماد عقود إدارة الأملاك (Draft/PendingApproval → Active، ورفض اعتماد عقد منتهٍ)، محرك مطابقة المشترين بالعقارات (Buyer-Property Matching)، وتوليد عمولة المسوّق تلقائيًا عند تفعيل عقد الإيجار — كلها عبر EF Core InMemory.
 
 ```bash
 cd src/Frontend
@@ -173,6 +173,32 @@ POST   /api/payments                   [Permission: Payment.Create]
 
 GET    /api/reports/owner-statement/{ownerId}    [Permission: Financial.View]
 GET    /api/reports/tenant-statement/{tenantId}  [Permission: Tenant.View]
+
+GET    /api/agents                     [Permission: Agent.View]
+POST   /api/agents                     [Permission: Agent.Create]
+PUT    /api/agents/{id}                [Permission: Agent.Edit]
+DELETE /api/agents/{id}                [Permission: Agent.Delete]
+
+GET    /api/buyers                     [Permission: Buyer.View]
+POST   /api/buyers                     [Permission: Buyer.Create]
+PUT    /api/buyers/{id}                [Permission: Buyer.Edit]
+DELETE /api/buyers/{id}                [Permission: Buyer.Delete]
+GET    /api/buyers/{id}/matches        [Permission: Buyer.View]   (محرك مطابقة بسيط مع الوحدات المعروضة للبيع)
+
+GET    /api/sellers                    [Permission: Seller.View]
+POST   /api/sellers                    [Permission: Seller.Create]
+PUT    /api/sellers/{id}               [Permission: Seller.Edit]
+DELETE /api/sellers/{id}               [Permission: Seller.Delete]
+
+GET    /api/leads                      [Permission: Lead.View]
+POST   /api/leads                      [Permission: Lead.Create]
+PUT    /api/leads/{id}                 [Permission: Lead.Edit]
+POST   /api/leads/{id}/assign          [Permission: Lead.Assign]
+DELETE /api/leads/{id}                 [Permission: Lead.Delete]
+
+GET    /api/commissions                [Permission: Commission.View]
+POST   /api/commissions                [Permission: Commission.Manage]  (تسجيل يدوي استثنائي؛ عمولات الإيجار تُولَّد تلقائيًا عند التفعيل)
+POST   /api/commissions/{id}/mark-paid [Permission: Commission.Manage]
 
 GET    /api/roles                      [Permission: Role.View]
 POST   /api/roles                      [Permission: Role.Manage]

@@ -29,5 +29,11 @@ public interface IApplicationDbContext
     DbSet<LeasePayment> LeasePayments { get; }
     DbSet<Payment> Payments { get; }
 
+    DbSet<Agent> Agents { get; }
+    DbSet<Buyer> Buyers { get; }
+    DbSet<Seller> Sellers { get; }
+    DbSet<Lead> Leads { get; }
+    DbSet<Commission> Commissions { get; }
+
     Task<int> SaveChangesAsync(CancellationToken cancellationToken);
 }
