@@ -237,9 +237,10 @@ public static class ApplicationDbContextSeed
         }
 
         // 7) مشترٍ تجريبي بمعايير بحث تُستخدم فعليًا في محرك المطابقة البسيط (Buyer Matching).
-        if (!await context.Buyers.AnyAsync(b => b.CompanyId == company.Id))
+        var sampleBuyer = await context.Buyers.FirstOrDefaultAsync(b => b.CompanyId == company.Id);
+        if (sampleBuyer is null)
         {
-            context.Buyers.Add(new Buyer
+            sampleBuyer = new Buyer
             {
                 CompanyId = company.Id,
                 BranchId = mainBranch.Id,
@@ -252,14 +253,16 @@ public static class ApplicationDbContextSeed
                 FinancingStatus = FinancingStatus.BankFinancing,
                 AssignedAgentId = sampleAgent.Id,
                 IsActive = true
-            });
+            };
+            context.Buyers.Add(sampleBuyer);
             await context.SaveChangesAsync();
         }
 
         // 8) عميل محتمل تجريبي (Lead) لتغطية نقطة الدخول المركزية لـ CRM النظام.
-        if (!await context.Leads.AnyAsync(l => l.CompanyId == company.Id))
+        var sampleLead = await context.Leads.FirstOrDefaultAsync(l => l.CompanyId == company.Id);
+        if (sampleLead is null)
         {
-            context.Leads.Add(new Lead
+            sampleLead = new Lead
             {
                 CompanyId = company.Id,
                 BranchId = mainBranch.Id,
@@ -271,7 +274,8 @@ public static class ApplicationDbContextSeed
                 AssignedAgentId = sampleAgent.Id,
                 Status = LeadStatus.Contacted,
                 Priority = LeadPriority.High
-            });
+            };
+            context.Leads.Add(sampleLead);
             await context.SaveChangesAsync();
         }
 
@@ -376,12 +380,185 @@ public static class ApplicationDbContextSeed
             await context.SaveChangesAsync();
         }
 
-        // 10) مزامنة عدّادات الترقيم المرجعي (NumberSequences) مع الأكواد المزروعة يدويًا
+        // 10) بيانات تجريبية لموديولات Phase 5 (Listings/Marketing/Viewings/Offers/Sales) —
+        // تغطي مسار بيع كامل من الإعلان حتى الإتمام مع توليد عمولة تلقائي، بنفس فلسفة عقد
+        // الإيجار التجريبي أعلاه، لتسهيل اختبار المسار الكامل من الواجهة الأمامية مباشرة.
+        if (!await context.Sellers.AnyAsync(s => s.CompanyId == company.Id))
+        {
+            var saleProperty = new Property
+            {
+                CompanyId = company.Id,
+                BranchId = mainBranch.Id,
+                PropertyCode = "PROP-000002",
+                PropertyName = "فيلا الأندلس - حي النرجس",
+                PropertyType = PropertyType.Villa,
+                PropertyCategory = PropertyCategory.Residential,
+                Status = PropertyStatus.Active,
+                OwnerId = sampleOwner.Id,
+                City = "الرياض",
+                District = "النرجس",
+                NumberOfFloors = 2,
+                TotalArea = 450
+            };
+            context.Properties.Add(saleProperty);
+            await context.SaveChangesAsync();
+
+            var saleUnit = new Unit
+            {
+                CompanyId = company.Id,
+                BranchId = mainBranch.Id,
+                PropertyId = saleProperty.Id,
+                UnitCode = "UNIT-000002",
+                UnitNumber = "1",
+                UnitType = UnitType.Villa,
+                CurrentStatus = UnitStatus.Available,
+                Area = 400,
+                Bedrooms = 5,
+                Bathrooms = 4,
+                SalePrice = 950_000
+            };
+            context.Units.Add(saleUnit);
+            await context.SaveChangesAsync();
+
+            var seller = new Seller
+            {
+                CompanyId = company.Id,
+                BranchId = mainBranch.Id,
+                SellerCode = "SELLER-000001",
+                OwnerId = sampleOwner.Id,
+                PropertyId = saleProperty.Id,
+                AskingPrice = 1_000_000,
+                MinimumPrice = 900_000,
+                CommissionPercentage = 2.5m,
+                MandateStatus = ListingMandateStatus.Active,
+                MandateStartDate = DateTime.UtcNow.AddMonths(-2),
+                AssignedAgentId = sampleAgent.Id
+            };
+            context.Sellers.Add(seller);
+
+            var listing = new Listing
+            {
+                CompanyId = company.Id,
+                BranchId = mainBranch.Id,
+                ListingCode = "LIST-000001",
+                PropertyId = saleProperty.Id,
+                UnitId = saleUnit.Id,
+                ListingType = ListingType.ForSale,
+                Price = 1_000_000,
+                Description = "فيلا فاخرة 5 غرف نوم في حي النرجس، تشطيب سوبر لوكس.",
+                Features = "مسبح، مصعد داخلي، غرفة سائق",
+                AgentId = sampleAgent.Id,
+                ListingStartDate = DateTime.UtcNow.AddMonths(-2),
+                Status = ListingStatus.Published
+            };
+            context.Listings.Add(listing);
+            await context.SaveChangesAsync();
+
+            var campaign = new MarketingCampaign
+            {
+                CompanyId = company.Id,
+                BranchId = mainBranch.Id,
+                CampaignCode = "CAMP-000001",
+                Name = "حملة إطلاق فيلا الأندلس",
+                Channel = MarketingChannel.Instagram,
+                StartDate = DateTime.UtcNow.AddMonths(-2),
+                EndDate = DateTime.UtcNow.AddMonths(-1),
+                Budget = 5_000,
+                ActualCost = 4_200,
+                PropertyId = saleProperty.Id,
+                AgentId = sampleAgent.Id,
+                IsActive = false
+            };
+            context.MarketingCampaigns.Add(campaign);
+            await context.SaveChangesAsync();
+
+            if (sampleLead.CampaignId is null)
+            {
+                sampleLead.CampaignId = campaign.Id;
+            }
+
+            var viewing = new Viewing
+            {
+                CompanyId = company.Id,
+                BranchId = mainBranch.Id,
+                ViewingCode = "VIEW-000001",
+                PropertyId = saleProperty.Id,
+                UnitId = saleUnit.Id,
+                ListingId = listing.Id,
+                BuyerId = sampleBuyer.Id,
+                AgentId = sampleAgent.Id,
+                ScheduledAt = DateTime.UtcNow.AddDays(-20),
+                Status = Domain.Common.Enums.ViewingStatus.Completed,
+                Feedback = "أُعجب المشتري بالفيلا وأبدى رغبته بتقديم عرض."
+            };
+            context.Viewings.Add(viewing);
+
+            var offer = new Offer
+            {
+                CompanyId = company.Id,
+                BranchId = mainBranch.Id,
+                OfferNumber = "OFFER-000001",
+                BuyerId = sampleBuyer.Id,
+                PropertyId = saleProperty.Id,
+                UnitId = saleUnit.Id,
+                Amount = 950_000,
+                OfferDate = DateTime.UtcNow.AddDays(-15),
+                Status = Domain.Common.Enums.OfferStatus.Accepted
+            };
+            context.Offers.Add(offer);
+            await context.SaveChangesAsync();
+
+            const decimal saleCommissionAmount = 950_000 * 2.5m / 100m; // 23,750
+            const decimal saleVatAmount = saleCommissionAmount * 15 / 100m; // 3,562.5
+
+            var sale = new Sale
+            {
+                CompanyId = company.Id,
+                BranchId = mainBranch.Id,
+                SaleNumber = "SALE-000001",
+                PropertyId = saleProperty.Id,
+                UnitId = saleUnit.Id,
+                SellerId = seller.Id,
+                BuyerId = sampleBuyer.Id,
+                AgentId = sampleAgent.Id,
+                OfferId = offer.Id,
+                AskingPrice = 1_000_000,
+                FinalPrice = 950_000,
+                CommissionPercentage = 2.5m,
+                VatPercentage = 15,
+                Stage = SaleStage.Completed,
+                CompletedAt = DateTime.UtcNow.AddDays(-5)
+            };
+            context.Sales.Add(sale);
+            saleUnit.CurrentStatus = UnitStatus.Sold;
+            await context.SaveChangesAsync();
+
+            context.Commissions.Add(new Commission
+            {
+                CompanyId = company.Id,
+                BranchId = mainBranch.Id,
+                CommissionNumber = "COMM-000002",
+                AgentId = sampleAgent.Id,
+                SourceType = CommissionSourceType.Sale,
+                SaleId = sale.Id,
+                BaseAmount = 950_000,
+                CommissionPercentage = 2.5m,
+                CommissionAmount = saleCommissionAmount,
+                VatPercentage = 15,
+                VatAmount = saleVatAmount,
+                NetCommissionAmount = saleCommissionAmount + saleVatAmount,
+                Status = CommissionStatus.Pending
+            });
+
+            await context.SaveChangesAsync();
+        }
+
+        // 11) مزامنة عدّادات الترقيم المرجعي (NumberSequences) مع الأكواد المزروعة يدويًا
         // أعلاه (مثال: "LEAD-000001"). بيانات البذر تُدرَج مباشرة بأكواد ثابتة دون المرور
         // بـ NumberGeneratorService، فإن لم تُزامَن العدّادات هنا، أول طلب فعلي عبر الـ API
         // لنفس النوع يولّد نفس الكود المستخدم مسبقًا فيصطدم بقيد التفرّد (Unique Index).
-        await EnsureNumberSequenceSeededAsync(context, company.Id, "PROPERTY", "PROP", 1);
-        await EnsureNumberSequenceSeededAsync(context, company.Id, "UNIT", "UNIT", 1);
+        await EnsureNumberSequenceSeededAsync(context, company.Id, "PROPERTY", "PROP", 2);
+        await EnsureNumberSequenceSeededAsync(context, company.Id, "UNIT", "UNIT", 2);
         await EnsureNumberSequenceSeededAsync(context, company.Id, "OWNER", "OWNER", 1);
         await EnsureNumberSequenceSeededAsync(context, company.Id, "TEN", "TEN", 1);
         await EnsureNumberSequenceSeededAsync(context, company.Id, "LEASE", "LEASE", 1);
@@ -389,7 +566,13 @@ public static class ApplicationDbContextSeed
         await EnsureNumberSequenceSeededAsync(context, company.Id, "AGENT", "AGENT", 1);
         await EnsureNumberSequenceSeededAsync(context, company.Id, "BUYER", "BUYER", 1);
         await EnsureNumberSequenceSeededAsync(context, company.Id, "LEAD", "LEAD", 1);
-        await EnsureNumberSequenceSeededAsync(context, company.Id, "COMM", "COMM", 1);
+        await EnsureNumberSequenceSeededAsync(context, company.Id, "COMM", "COMM", 2);
+        await EnsureNumberSequenceSeededAsync(context, company.Id, "SELLER", "SELLER", 1);
+        await EnsureNumberSequenceSeededAsync(context, company.Id, "LIST", "LIST", 1);
+        await EnsureNumberSequenceSeededAsync(context, company.Id, "CAMP", "CAMP", 1);
+        await EnsureNumberSequenceSeededAsync(context, company.Id, "VIEW", "VIEW", 1);
+        await EnsureNumberSequenceSeededAsync(context, company.Id, "OFFER", "OFFER", 1);
+        await EnsureNumberSequenceSeededAsync(context, company.Id, "SALE", "SALE", 1);
         await context.SaveChangesAsync();
     }
 

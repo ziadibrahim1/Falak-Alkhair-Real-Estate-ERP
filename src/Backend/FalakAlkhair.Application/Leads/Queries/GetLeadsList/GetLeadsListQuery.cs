@@ -31,6 +31,7 @@ public class GetLeadsListQueryHandler : IRequestHandler<GetLeadsListQuery, Pagin
             .AsNoTracking()
             .Include(l => l.InterestedProperty)
             .Include(l => l.AssignedAgent)
+            .Include(l => l.Campaign)
             .Where(l => l.CompanyId == _currentUser.CompanyId && !l.IsDeleted);
 
         if (!string.IsNullOrWhiteSpace(request.SearchTerm))

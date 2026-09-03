@@ -35,5 +35,11 @@ public interface IApplicationDbContext
     DbSet<Lead> Leads { get; }
     DbSet<Commission> Commissions { get; }
 
+    DbSet<Listing> Listings { get; }
+    DbSet<MarketingCampaign> MarketingCampaigns { get; }
+    DbSet<Viewing> Viewings { get; }
+    DbSet<Offer> Offers { get; }
+    DbSet<Sale> Sales { get; }
+
     Task<int> SaveChangesAsync(CancellationToken cancellationToken);
 }

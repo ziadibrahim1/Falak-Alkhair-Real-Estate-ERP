@@ -210,3 +210,91 @@ export interface CommissionDto {
   netCommissionAmount: number;
   status: number;
 }
+
+export interface ListingDto {
+  id: string;
+  listingCode: string;
+  propertyId: string;
+  propertyName: string;
+  unitId: string;
+  unitNumber: string;
+  listingType: number;
+  price: number;
+  description?: string;
+  agentId?: string;
+  agentNameAr?: string;
+  listingStartDate?: string;
+  listingEndDate?: string;
+  status: number;
+}
+
+export interface MarketingCampaignDto {
+  id: string;
+  campaignCode: string;
+  name: string;
+  channel: number;
+  startDate: string;
+  endDate?: string;
+  budget: number;
+  actualCost: number;
+  propertyId?: string;
+  propertyName?: string;
+  agentId?: string;
+  agentNameAr?: string;
+  isActive: boolean;
+  leadsCount: number;
+  conversionsCount: number;
+}
+
+export interface ViewingDto {
+  id: string;
+  viewingCode: string;
+  propertyId: string;
+  propertyName: string;
+  unitId: string;
+  unitNumber: string;
+  buyerId?: string;
+  buyerNameAr?: string;
+  tenantId?: string;
+  tenantNameAr?: string;
+  agentId?: string;
+  agentNameAr?: string;
+  scheduledAt: string;
+  status: number;
+  feedback?: string;
+}
+
+export interface OfferDto {
+  id: string;
+  offerNumber: string;
+  buyerId: string;
+  buyerNameAr: string;
+  propertyId: string;
+  propertyName: string;
+  unitId: string;
+  unitNumber: string;
+  amount: number;
+  offerDate: string;
+  expirationDate?: string;
+  status: number;
+}
+
+export interface SaleDto {
+  id: string;
+  saleNumber: string;
+  propertyId: string;
+  propertyName: string;
+  unitId: string;
+  unitNumber: string;
+  sellerId: string;
+  sellerCode: string;
+  buyerId: string;
+  buyerNameAr: string;
+  agentId?: string;
+  agentNameAr?: string;
+  askingPrice: number;
+  finalPrice: number;
+  commissionPercentage: number;
+  stage: number;
+  completedAt?: string;
+}

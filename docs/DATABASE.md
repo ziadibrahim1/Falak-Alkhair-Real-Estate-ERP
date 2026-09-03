@@ -1,6 +1,8 @@
-# مخطط قاعدة البيانات — حتى نهاية Phase 4
+# مخطط قاعدة البيانات — حتى نهاية Phase 5
 
-قاعدة البيانات: **SQL Server**. هذا المستند يغطي الجداول المبنية فعليًا حتى Phase 4 (Properties/Units/Owners، Tenants/Leases/Payments، Agents/Buyers/Sellers/Leads/Commissions). جداول المراحل القادمة (Listings, Maintenance, Auctions ...) موثّقة في [ROADMAP.md](./ROADMAP.md) وليست جزءًا من هذا الـ Schema بعد.
+قاعدة البيانات: **SQL Server**. هذا المستند يغطي الجداول المبنية فعليًا حتى Phase 5 (Properties/Units/Owners، Tenants/Leases/Payments، Agents/Buyers/Sellers/Leads/Commissions، Listings/MarketingCampaigns/Viewings/Offers/Sales). جداول المراحل القادمة (Maintenance, Auctions ...) موثّقة في [ROADMAP.md](./ROADMAP.md) وليست جزءًا من هذا الـ Schema بعد.
+
+جداول Phase 5 الإضافية (راجع الكيانات في `FalakAlkhair.Domain/Entities`): `Listing` (PropertyId, UnitId, ListingType, Price, Status)، `MarketingCampaign` (Channel, Budget, ActualCost, PropertyId, AgentId — وLeads مرتبطة عبر `Lead.CampaignId`)، `Viewing` (PropertyId, UnitId, BuyerId/TenantId, ScheduledAt, Status)، `Offer` (BuyerId, UnitId, Amount, Status)، `Sale` (PropertyId, UnitId, SellerId, BuyerId, Stage, FinalPrice — وCommission مرتبطة عبر `Commission.SaleId`). كل هذه الكيانات ترث `BaseAuditableEntity` بنفس ضمانات Soft Delete/Audit/Multi-Company الموثّقة أدناه.
 
 ## ERD
 

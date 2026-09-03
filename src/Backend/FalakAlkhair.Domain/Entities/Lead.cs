@@ -24,6 +24,10 @@ public class Lead : BaseAuditableEntity
     public Guid? AssignedAgentId { get; set; }
     public Agent? AssignedAgent { get; set; }
 
+    /// <summary>الحملة التسويقية التي نتج عنها هذا العميل المحتمل (اختياري).</summary>
+    public Guid? CampaignId { get; set; }
+    public MarketingCampaign? Campaign { get; set; }
+
     public LeadStatus Status { get; set; } = LeadStatus.New;
     public LeadPriority Priority { get; set; } = LeadPriority.Medium;
 

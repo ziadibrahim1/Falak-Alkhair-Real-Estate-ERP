@@ -1,6 +1,6 @@
 # خارطة الطريق — المراحل القادمة
 
-هذا الإصدار غطّى **PHASE 1** و**PHASE 2** و**PHASE 3** بالكامل، بالإضافة إلى **PHASE 4** (Buyers, Sellers, Leads, Agents, Commissions) كأساس متين حقيقي وقابل للتشغيل. الجدول أدناه يلخّص ما تبقّى، بنفس ترقيم المراحل الأصلي في متطلبات المشروع.
+هذا الإصدار غطّى **PHASE 1** إلى **PHASE 5** بالكامل. الجدول أدناه يلخّص ما تبقّى، بنفس ترقيم المراحل الأصلي في متطلبات المشروع.
 
 | المرحلة | النطاق | الحالة |
 |---|---|---|
@@ -8,11 +8,22 @@
 | **Phase 2** | Properties, Units, Owners, Property Management | ✅ منجزة (عدا Owner Portal المستقبلي) |
 | **Phase 3** | Tenants, Leases, Payments, Receivables, Owner Statements | ✅ منجزة (عدا لوحة Overdue في الواجهة الأمامية — الـ API جاهز) |
 | **Phase 4** | Buyers, Sellers, Leads, Agents, Commissions | ✅ منجزة |
-| **Phase 5** | Listings, Marketing, Viewings, Sales | ⏭ التالية |
-| **Phase 6** | Maintenance, Employees, Vendors, Quotations | ⏭ |
+| **Phase 5** | Listings, Marketing, Viewings, Sales, Offers | ✅ منجزة |
+| **Phase 6** | Maintenance, Employees, Vendors, Quotations | ⏭ التالية |
 | **Phase 7** | Auctions, Auction Integration Layer, Auction Audit | ⏭ |
 | **Phase 8** | Reports, Notifications, Documents (رفع فعلي), Dashboard (إحصائيات كاملة) | ⏭ |
 | **Phase 9** | Testing (تغطية شاملة), Security Hardening, Performance, Deployment, Documentation | جزئي (أساسيات الأمان والاختبارات موجودة، التغطية الكاملة لاحقًا) |
+
+## ما تم فعليًا في Phase 5
+
+1. **Listings (الإعلانات العقارية)**: كيان `Listing` لوحدة محدَّدة (بيع/إيجار)، مع أمر `POST /api/listings/{id}/publish` يمنع النشر بلا سعر ووصف (تحقيق فعلي لمتطلب "منع نشر إعلان بدون البيانات المطلوبة")، ويحدّث حالة الوحدة تلقائيًا (`ListedForSale`/`ListedForRent`) عند النشر.
+2. **Marketing (الحملات التسويقية)**: كيان `MarketingCampaign` بقناة تسويقية (`MarketingChannel`)، ميزانية وتكلفة فعلية. الأداء (`LeadsCount`/`ConversionsCount`) **محسوب من بيانات حقيقية** عبر ربط `Lead.CampaignId` بالحملة — وليس عدّادًا يدويًا وهميًا.
+3. **Viewings (المعاينات)**: كيان `Viewing` لمعاينة عقار/وحدة من مشترٍ أو مستأجر محتمل، مع `POST /api/viewings/{id}/complete` لتسجيل النتيجة (Completed/Cancelled/NoShow) والملاحظات.
+4. **Offers (عروض الشراء)**: كيان `Offer` يدعم تعدُّد العروض على نفس الوحدة من مشترين مختلفين، مع `POST /api/offers/{id}/status` لقبول/رفض/سحب العرض.
+5. **Sales (المبيعات)**: كيان `Sale` بمسار مبيعات كامل (Sales Pipeline: `Lead→Qualified→Viewing→Offer→Negotiation→Reserved→Contract→Payment→Completed/Cancelled`) عبر `POST /api/sales/{id}/stage` الذي يمنع الرجوع لمرحلة سابقة. عند الوصول لمرحلة **Completed**، يُولَّد سجل `Commission` تلقائيًا (SourceType = Sale) وتتحدَّث حالة الوحدة إلى `Sold` — نفس الآلية التلقائية المستخدمة في تفعيل عقود الإيجار (Phase 3/4)، وSourceType.Sale المعرَّف مسبقًا في Commission أصبح مُستخدَمًا فعليًا الآن.
+6. **الواجهة الأمامية**: خمس صفحات قوائم حقيقية جديدة (`/listings`, `/marketing`, `/viewings`, `/offers`, `/sales`) — استبدلت صفحتَي `/marketing` و`/sales` النموذج المؤقت (ComingSoon) ببيانات حقيقية من الـ API، بنفس نمط بقية صفحات القوائم في النظام.
+
+تم التحقق من Phase 5 فعليًا بنفس منهجية Phase 4: `dotnet build`/`dotnet test` (34 اختبارًا ناجحًا)، migration حقيقية (`AddListingsMarketingViewingsOffersSales`) مُولَّدة ومُطبَّقة على SQL Server 2022 حقيقي (Docker)، تشغيل الـ API الفعلي واختبار مسار البيع الكامل من الإعلان حتى توليد العمولة عبر طلبات HTTP حقيقية (بما في ذلك رفض الانتقال للخلف في مسار المبيعات بخطأ 422 كما هو مصمَّم)، و`npm run lint`/`npm run build` (52 صفحة، مساران لغويان).
 
 ## ما تم فعليًا في Phase 4
 

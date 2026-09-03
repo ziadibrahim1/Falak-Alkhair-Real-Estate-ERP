@@ -45,6 +45,9 @@
     "sellers": "Sellers",
     "agents": "Agents",
     "leads": "Leads",
+    "listings": "Listings",
+    "viewings": "Viewings",
+    "offers": "Offers",
     "sales": "Sales",
     "maintenance": "Maintenance",
     "marketing": "Marketing",
@@ -168,5 +171,61 @@
     "priority": "Priority",
     "status": "Status",
     "addNew": "Add New Lead"
+  },
+  "listings": {
+    "title": "Listings",
+    "code": "Listing Code",
+    "property": "Property",
+    "unit": "Unit",
+    "type": "Type",
+    "price": "Price",
+    "agent": "Agent",
+    "status": "Status",
+    "publish": "Publish",
+    "addNew": "Create New Listing"
+  },
+  "marketing": {
+    "title": "Marketing Campaigns",
+    "code": "Campaign Code",
+    "name": "Campaign Name",
+    "channel": "Channel",
+    "budget": "Budget",
+    "actualCost": "Actual Cost",
+    "leadsCount": "Leads",
+    "conversionsCount": "Conversions",
+    "addNew": "Create New Campaign"
+  },
+  "viewings": {
+    "title": "Viewings",
+    "code": "Viewing Code",
+    "property": "Property",
+    "unit": "Unit",
+    "withParty": "With",
+    "agent": "Agent",
+    "scheduledAt": "Scheduled At",
+    "status": "Status",
+    "addNew": "Schedule New Viewing"
+  },
+  "offers": {
+    "title": "Offers",
+    "number": "Offer Number",
+    "buyer": "Buyer",
+    "property": "Property",
+    "unit": "Unit",
+    "amount": "Amount",
+    "offerDate": "Offer Date",
+    "status": "Status",
+    "addNew": "Record New Offer"
+  },
+  "sales": {
+    "title": "Sales",
+    "number": "Sale Number",
+    "property": "Property",
+    "unit": "Unit",
+    "buyer": "Buyer",
+    "agent": "Agent",
+    "finalPrice": "Final Price",
+    "stage": "Stage",
+    "addNew": "Create New Sale"
   }
 }

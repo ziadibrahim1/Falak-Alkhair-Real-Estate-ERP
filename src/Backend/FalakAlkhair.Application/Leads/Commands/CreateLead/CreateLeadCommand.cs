@@ -15,6 +15,7 @@ public record CreateLeadCommand : IRequest<Guid>
     public LeadType LeadType { get; init; }
     public Guid? InterestedPropertyId { get; init; }
     public Guid? AssignedAgentId { get; init; }
+    public Guid? CampaignId { get; init; }
     public LeadPriority Priority { get; init; } = LeadPriority.Medium;
     public string? Notes { get; init; }
 }
@@ -61,6 +62,7 @@ public class CreateLeadCommandHandler : IRequestHandler<CreateLeadCommand, Guid>
             LeadType = request.LeadType,
             InterestedPropertyId = request.InterestedPropertyId,
             AssignedAgentId = request.AssignedAgentId,
+            CampaignId = request.CampaignId,
             Status = LeadStatus.New,
             Priority = request.Priority,
             Notes = request.Notes

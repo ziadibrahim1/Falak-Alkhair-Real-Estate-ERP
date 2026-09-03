@@ -2,23 +2,23 @@
 
 نظام ERP عقاري لإدارة الأملاك والوساطة العقارية، مصمم لشركة فلك الخير العقارية في السوق السعودي.
 
-> **حالة المشروع:** حتى نهاية Phase 4 (راجع [docs/ARCHITECTURE.md](./docs/ARCHITECTURE.md#10-الموديولات-المبنية-في-هذا-الإصدار)) — Production-ready للنطاق المبني فعليًا، وليس نموذجًا تجريبيًا: مصادقة وتفويض حقيقيان، سجل تدقيق تلقائي، عمليات فعلية على SQL Server. بقية الموديولات (المبيعات، الصيانة، المزادات ...) موثّقة كخطة تنفيذ واضحة في [docs/ROADMAP.md](./docs/ROADMAP.md) ولم تُبنَ بعد — لا يوجد أي ادّعاء بخلاف ذلك.
+> **حالة المشروع:** حتى نهاية Phase 5 (راجع [docs/ARCHITECTURE.md](./docs/ARCHITECTURE.md#10-الموديولات-المبنية-في-هذا-الإصدار)) — Production-ready للنطاق المبني فعليًا، وليس نموذجًا تجريبيًا: مصادقة وتفويض حقيقيان، سجل تدقيق تلقائي، عمليات فعلية على SQL Server. بقية الموديولات (الصيانة، المزادات ...) موثّقة كخطة تنفيذ واضحة في [docs/ROADMAP.md](./docs/ROADMAP.md) ولم تُبنَ بعد — لا يوجد أي ادّعاء بخلاف ذلك.
 
 ## المستندات
 
 - [docs/ARCHITECTURE.md](./docs/ARCHITECTURE.md) — العمارة، Tech Stack، الأمان، RBAC، Audit Log.
 - [docs/DATABASE.md](./docs/DATABASE.md) — ERD وتفاصيل الجداول وحالة الـ Migrations.
-- [docs/ROADMAP.md](./docs/ROADMAP.md) — خطة المراحل القادمة (Phase 5 → 9).
+- [docs/ROADMAP.md](./docs/ROADMAP.md) — خطة المراحل القادمة (Phase 6 → 9).
 
 ## ✅ حالة التحقق الفعلي (Build/Test/Run)
 
-على عكس الإصدارات التأسيسية الأولى (حيث لم تتوفر بيئة بها .NET SDK أو Docker)، تم في جلسة بناء Phase 4 تنفيذ كل ما يلي **فعليًا، لا نظريًا**:
+على عكس الإصدارات التأسيسية الأولى (حيث لم تتوفر بيئة بها .NET SDK أو Docker)، تم في جلسات بناء Phase 4 و5 تنفيذ كل ما يلي **فعليًا، لا نظريًا**، لكل مرحلة على حدة:
 
 - `dotnet restore && dotnet build` على الحل الكامل (5 مشاريع) — نجح بلا أخطاء ولا تحذيرات.
-- `dotnet test` — **25 اختبارًا ناجحًا** (FluentValidation validators، Handlers، منطق توليد العمولات التلقائي).
+- `dotnet test` — **34 اختبارًا ناجحًا** (FluentValidation validators، Handlers، منطق توليد العمولات التلقائي لعقود الإيجار والمبيعات، محرك مطابقة المشترين، منع نشر إعلان ناقص، منع الرجوع في مسار المبيعات).
 - توليد migration حقيقي (`dotnet ef migrations add`) وتطبيقه فعليًا على **SQL Server 2022 حقيقي عبر Docker** (`dotnet ef database update`) — قاعدة بيانات كاملة بكل الجداول والفهارس والعلاقات، وليس ملفًا نظريًا لم يُختبر.
-- تشغيل الـ API الفعلي (`dotnet run`) مع تفعيل الـ Seed، تسجيل دخول حقيقي عبر JWT، وتنفيذ طلبات CRUD حقيقية (إنشاء/قراءة) على كل Endpoint جديد في Phase 4 — بما فيها اكتشاف وإصلاح خطأ حقيقي في `NumberGeneratorService` كان سيمنع أول عملية إنشاء فعلية لأي كيان (راجع docs/ROADMAP.md لتفاصيل الإصلاح).
-- `npm install && npm run lint && npm run build` على الواجهة الأمامية (46 صفحة، مسارين لغويين) — نجح بلا أخطاء.
+- تشغيل الـ API الفعلي (`dotnet run`) مع تفعيل الـ Seed، تسجيل دخول حقيقي عبر JWT، وتنفيذ طلبات CRUD حقيقية على كل Endpoint جديد في Phase 4 و5 — بما فيها اكتشاف وإصلاح خطأ حقيقي في `NumberGeneratorService` كان سيمنع أول عملية إنشاء فعلية لأي كيان (راجع docs/ROADMAP.md)، والتحقق من مسار البيع الكامل (إعلان → معاينة → عرض → بيع مكتمل → عمولة مولَّدة تلقائيًا) عبر طلبات HTTP حقيقية.
+- `npm install && npm run lint && npm run build` على الواجهة الأمامية (52 صفحة، مسارين لغويين) — نجح بلا أخطاء.
 
 بيئة تنفيذ لاحقة قد لا تملك دائمًا وصولًا لـ .NET SDK/Docker بنفس السهولة؛ إن حدث ذلك مستقبلًا، ستُوثَّق أي قيود بنفس الصراحة كما في الإصدارات الأولى بدل الادّعاء بخلاف الواقع.
 
@@ -60,8 +60,9 @@ cd ..
 dotnet tool install --global dotnet-ef
 
 # 4. تطبيق الـ Migrations الموجودة بالفعل في المستودع (InitialCreate → AddTenantsLeasesPayments
-#    → AddAgentsBuyersSellersLeadsCommissions) — لا حاجة لإنشاء migration جديد إلا عند إضافة
-#    كيانات جديدة فعليًا. dotnet run أدناه يطبّقها تلقائيًا في بيئة Development، أو نفّذها يدويًا:
+#    → AddAgentsBuyersSellersLeadsCommissions → AddListingsMarketingViewingsOffersSales) — لا حاجة
+#    لإنشاء migration جديد إلا عند إضافة كيانات جديدة فعليًا. dotnet run أدناه يطبّقها تلقائيًا في
+#    بيئة Development، أو نفّذها يدويًا:
 dotnet ef database update \
   --project FalakAlkhair.Infrastructure \
   --startup-project FalakAlkhair.API
@@ -107,7 +108,7 @@ cd src/Backend
 dotnet test
 ```
 
-25 اختبارًا ناجحًا (تم التحقق فعليًا). تُغطّي الاختبارات الحالية: FluentValidation validators (الملاك، العقارات، المسوّقين)، منطق Workflow اعتماد عقود إدارة الأملاك (Draft/PendingApproval → Active، ورفض اعتماد عقد منتهٍ)، محرك مطابقة المشترين بالعقارات (Buyer-Property Matching)، وتوليد عمولة المسوّق تلقائيًا عند تفعيل عقد الإيجار — كلها عبر EF Core InMemory.
+34 اختبارًا ناجحًا (تم التحقق فعليًا). تُغطّي الاختبارات الحالية: FluentValidation validators (الملاك، العقارات، المسوّقين، المبيعات)، منطق Workflow اعتماد عقود إدارة الأملاك، محرك مطابقة المشترين بالعقارات، توليد عمولة المسوّق تلقائيًا عند تفعيل عقد الإيجار وعند إتمام معاملة بيع، منع نشر إعلان عقاري ناقص البيانات، ومنع الرجوع لمرحلة سابقة في مسار المبيعات — كلها عبر EF Core InMemory.
 
 ```bash
 cd src/Frontend
@@ -197,8 +198,31 @@ POST   /api/leads/{id}/assign          [Permission: Lead.Assign]
 DELETE /api/leads/{id}                 [Permission: Lead.Delete]
 
 GET    /api/commissions                [Permission: Commission.View]
-POST   /api/commissions                [Permission: Commission.Manage]  (تسجيل يدوي استثنائي؛ عمولات الإيجار تُولَّد تلقائيًا عند التفعيل)
+POST   /api/commissions                [Permission: Commission.Manage]  (تسجيل يدوي استثنائي؛ تُولَّد تلقائيًا عند تفعيل الإيجار/إتمام البيع)
 POST   /api/commissions/{id}/mark-paid [Permission: Commission.Manage]
+
+GET    /api/listings                   [Permission: Listing.View]
+POST   /api/listings                   [Permission: Listing.Create]
+PUT    /api/listings/{id}              [Permission: Listing.Edit]
+POST   /api/listings/{id}/publish      [Permission: Listing.Approve]  (يمنع النشر بلا بيانات كافية)
+DELETE /api/listings/{id}              [Permission: Listing.Delete]
+
+GET    /api/marketing/campaigns        [Permission: Marketing.View]
+POST   /api/marketing/campaigns        [Permission: Marketing.Create]
+PUT    /api/marketing/campaigns/{id}   [Permission: Marketing.Edit]
+DELETE /api/marketing/campaigns/{id}   [Permission: Marketing.Delete]
+
+GET    /api/viewings                   [Permission: Viewing.View]
+POST   /api/viewings                   [Permission: Viewing.Create]
+POST   /api/viewings/{id}/complete     [Permission: Viewing.Edit]
+
+GET    /api/offers                     [Permission: Offer.View]
+POST   /api/offers                     [Permission: Offer.Create]
+POST   /api/offers/{id}/status         [Permission: Offer.Edit]
+
+GET    /api/sales                      [Permission: Sale.View]
+POST   /api/sales                      [Permission: Sale.Create]
+POST   /api/sales/{id}/stage           [Permission: Sale.Manage]  (يمنع الرجوع لمرحلة سابقة؛ يولّد عمولة عند Completed)
 
 GET    /api/roles                      [Permission: Role.View]
 POST   /api/roles                      [Permission: Role.Manage]

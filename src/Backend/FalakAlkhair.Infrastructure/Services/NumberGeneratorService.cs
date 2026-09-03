@@ -31,7 +31,11 @@ public class NumberGeneratorService : INumberGeneratorService
         ["AGENT"] = "AGENT",
         ["BUYER"] = "BUYER",
         ["SELLER"] = "SELLER",
-        ["COMM"] = "COMM"
+        ["COMM"] = "COMM",
+        ["LIST"] = "LIST",
+        ["CAMP"] = "CAMP",
+        ["VIEW"] = "VIEW",
+        ["OFFER"] = "OFFER"
     };
 
     private readonly ApplicationDbContext _context;

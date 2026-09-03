@@ -39,6 +39,12 @@ public class TestDbContext : DbContext, IApplicationDbContext
     public DbSet<Lead> Leads => Set<Lead>();
     public DbSet<Commission> Commissions => Set<Commission>();
 
+    public DbSet<Listing> Listings => Set<Listing>();
+    public DbSet<MarketingCampaign> MarketingCampaigns => Set<MarketingCampaign>();
+    public DbSet<Viewing> Viewings => Set<Viewing>();
+    public DbSet<Offer> Offers => Set<Offer>();
+    public DbSet<Sale> Sales => Set<Sale>();
+
     public static TestDbContext Create()
     {
         var options = new DbContextOptionsBuilder<TestDbContext>()

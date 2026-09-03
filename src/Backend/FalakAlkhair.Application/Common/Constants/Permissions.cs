@@ -28,6 +28,11 @@ public static class Permissions
         public const string Seller = nameof(Seller);
         public const string Lead = nameof(Lead);
         public const string Commission = nameof(Commission);
+        public const string Listing = nameof(Listing);
+        public const string Marketing = nameof(Marketing);
+        public const string Viewing = nameof(Viewing);
+        public const string Offer = nameof(Offer);
+        public const string Sale = nameof(Sale);
     }
 
     public static class Actions
@@ -136,6 +141,36 @@ public static class Permissions
     public const string CommissionView = "Commission.View";
     public const string CommissionManage = "Commission.Manage";
 
+    // --- Listing (الإعلانات العقارية) ---
+    public const string ListingView = "Listing.View";
+    public const string ListingCreate = "Listing.Create";
+    public const string ListingEdit = "Listing.Edit";
+    public const string ListingDelete = "Listing.Delete";
+    public const string ListingPublish = "Listing.Approve";
+
+    // --- Marketing (الحملات التسويقية) ---
+    public const string MarketingView = "Marketing.View";
+    public const string MarketingCreate = "Marketing.Create";
+    public const string MarketingEdit = "Marketing.Edit";
+    public const string MarketingDelete = "Marketing.Delete";
+
+    // --- Viewing (المعاينات) ---
+    public const string ViewingView = "Viewing.View";
+    public const string ViewingCreate = "Viewing.Create";
+    public const string ViewingEdit = "Viewing.Edit";
+    public const string ViewingDelete = "Viewing.Delete";
+
+    // --- Offer (عروض الشراء) ---
+    public const string OfferView = "Offer.View";
+    public const string OfferCreate = "Offer.Create";
+    public const string OfferEdit = "Offer.Edit";
+
+    // --- Sale (المبيعات) ---
+    public const string SaleView = "Sale.View";
+    public const string SaleCreate = "Sale.Create";
+    public const string SaleEdit = "Sale.Edit";
+    public const string SaleManage = "Sale.Manage";
+
     public static readonly IReadOnlyList<(string Code, string Module, string Action, string DescriptionAr)> All = new List<(string, string, string, string)>
     {
         (PropertyView, Modules.Property, Actions.View, "عرض العقارات"),
@@ -211,5 +246,30 @@ public static class Permissions
 
         (CommissionView, Modules.Commission, Actions.View, "عرض عمولات المسوّقين"),
         (CommissionManage, Modules.Commission, Actions.Manage, "إدارة عمولات المسوّقين"),
+
+        (ListingView, Modules.Listing, Actions.View, "عرض الإعلانات العقارية"),
+        (ListingCreate, Modules.Listing, Actions.Create, "إنشاء إعلان عقاري"),
+        (ListingEdit, Modules.Listing, Actions.Edit, "تعديل إعلان عقاري"),
+        (ListingDelete, Modules.Listing, Actions.Delete, "حذف إعلان عقاري"),
+        (ListingPublish, Modules.Listing, Actions.Approve, "نشر إعلان عقاري"),
+
+        (MarketingView, Modules.Marketing, Actions.View, "عرض الحملات التسويقية"),
+        (MarketingCreate, Modules.Marketing, Actions.Create, "إنشاء حملة تسويقية"),
+        (MarketingEdit, Modules.Marketing, Actions.Edit, "تعديل حملة تسويقية"),
+        (MarketingDelete, Modules.Marketing, Actions.Delete, "حذف حملة تسويقية"),
+
+        (ViewingView, Modules.Viewing, Actions.View, "عرض المعاينات"),
+        (ViewingCreate, Modules.Viewing, Actions.Create, "جدولة معاينة"),
+        (ViewingEdit, Modules.Viewing, Actions.Edit, "تعديل معاينة"),
+        (ViewingDelete, Modules.Viewing, Actions.Delete, "حذف معاينة"),
+
+        (OfferView, Modules.Offer, Actions.View, "عرض عروض الشراء"),
+        (OfferCreate, Modules.Offer, Actions.Create, "تسجيل عرض شراء"),
+        (OfferEdit, Modules.Offer, Actions.Edit, "تحديث حالة عرض شراء"),
+
+        (SaleView, Modules.Sale, Actions.View, "عرض معاملات البيع"),
+        (SaleCreate, Modules.Sale, Actions.Create, "إنشاء معاملة بيع"),
+        (SaleEdit, Modules.Sale, Actions.Edit, "تعديل معاملة بيع"),
+        (SaleManage, Modules.Sale, Actions.Manage, "إدارة مسار معاملة البيع (تغيير المرحلة)"),
     };
 }

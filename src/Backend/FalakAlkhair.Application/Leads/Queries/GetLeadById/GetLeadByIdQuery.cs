@@ -25,6 +25,7 @@ public class GetLeadByIdQueryHandler : IRequestHandler<GetLeadByIdQuery, LeadDto
             .AsNoTracking()
             .Include(l => l.InterestedProperty)
             .Include(l => l.AssignedAgent)
+            .Include(l => l.Campaign)
             .Where(l => l.CompanyId == _currentUser.CompanyId && !l.IsDeleted)
             .FirstOrDefaultAsync(l => l.Id == request.Id, cancellationToken)
             ?? throw new NotFoundException(nameof(Domain.Entities.Lead), request.Id);

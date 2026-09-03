@@ -16,6 +16,8 @@ public class LeadDto
     public string? InterestedPropertyName { get; set; }
     public Guid? AssignedAgentId { get; set; }
     public string? AssignedAgentNameAr { get; set; }
+    public Guid? CampaignId { get; set; }
+    public string? CampaignName { get; set; }
     public LeadStatus Status { get; set; }
     public LeadPriority Priority { get; set; }
     public string? Notes { get; set; }
@@ -34,6 +36,8 @@ public class LeadDto
         InterestedPropertyName = lead.InterestedProperty?.PropertyName,
         AssignedAgentId = lead.AssignedAgentId,
         AssignedAgentNameAr = lead.AssignedAgent?.NameAr,
+        CampaignId = lead.CampaignId,
+        CampaignName = lead.Campaign?.Name,
         Status = lead.Status,
         Priority = lead.Priority,
         Notes = lead.Notes,

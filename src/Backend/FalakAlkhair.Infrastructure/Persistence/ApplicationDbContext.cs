@@ -42,6 +42,12 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser, Applicati
     public DbSet<Lead> Leads => Set<Lead>();
     public DbSet<Commission> Commissions => Set<Commission>();
 
+    public DbSet<Listing> Listings => Set<Listing>();
+    public DbSet<MarketingCampaign> MarketingCampaigns => Set<MarketingCampaign>();
+    public DbSet<Viewing> Viewings => Set<Viewing>();
+    public DbSet<Offer> Offers => Set<Offer>();
+    public DbSet<Sale> Sales => Set<Sale>();
+
     protected override void OnModelCreating(ModelBuilder builder)
     {
         base.OnModelCreating(builder);
@@ -72,5 +78,10 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser, Applicati
         builder.Entity<Seller>().HasQueryFilter(e => !e.IsDeleted);
         builder.Entity<Lead>().HasQueryFilter(e => !e.IsDeleted);
         builder.Entity<Commission>().HasQueryFilter(e => !e.IsDeleted);
+        builder.Entity<Listing>().HasQueryFilter(e => !e.IsDeleted);
+        builder.Entity<MarketingCampaign>().HasQueryFilter(e => !e.IsDeleted);
+        builder.Entity<Viewing>().HasQueryFilter(e => !e.IsDeleted);
+        builder.Entity<Offer>().HasQueryFilter(e => !e.IsDeleted);
+        builder.Entity<Sale>().HasQueryFilter(e => !e.IsDeleted);
     }
 }
